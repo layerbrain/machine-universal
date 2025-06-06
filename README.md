@@ -1,4 +1,4 @@
-# universal-machine
+# machine-universal
 
 A comprehensive, zero-configuration development environment container powered by Layerbrain.
 
@@ -17,7 +17,7 @@ This repository provides a universal base Docker image that includes all major p
 Pull and run the latest image:
 
 ```bash
-docker pull ghcr.io/layerbrain/universal-machine:latest
+docker pull ghcr.io/layerbrain/machine-universal:latest
 ```
 
 Run with your project mounted:
@@ -27,12 +27,12 @@ Run with your project mounted:
 docker run --rm -it \
     -v $(pwd):/workspace/$(basename $(pwd)) \
     -w /workspace/$(basename $(pwd)) \
-    ghcr.io/layerbrain/universal-machine:latest
+    ghcr.io/layerbrain/machine-universal:latest
 ```
 
 ## Customizing Runtime Versions
 
-The universal-machine supports dynamic configuration of language runtimes through environment variables. Set any of the following `LAYERBRAIN_ENV_*` variables to customize your environment:
+The machine-universal supports dynamic configuration of language runtimes through environment variables. Set any of the following `LAYERBRAIN_ENV_*` variables to customize your environment:
 
 | Environment Variable | Description | Available Versions | Default |
 |---------------------|-------------|-------------------|---------|
@@ -53,7 +53,7 @@ docker run --rm -it \
     -e LAYERBRAIN_ENV_RUST_VERSION=nightly \
     -v $(pwd):/workspace/$(basename $(pwd)) \
     -w /workspace/$(basename $(pwd)) \
-    ghcr.io/layerbrain/universal-machine:latest
+    ghcr.io/layerbrain/machine-universal:latest
 ```
 
 ## Pre-installed Languages & Tools
@@ -86,9 +86,9 @@ docker run --rm -it \
 To build the image locally:
 
 ```bash
-git clone https://github.com/layerbrain/universal-machine.git
-cd universal-machine
-docker build -t universal-machine .
+git clone https://github.com/layerbrain/machine-universal.git
+cd machine-universal
+docker build -t machine-universal .
 ```
 
 ## Use Cases
@@ -101,7 +101,7 @@ docker build -t universal-machine .
 
 ## Contributing
 
-We welcome contributions! Please feel free to submit issues or pull requests to help improve the universal-machine.
+We welcome contributions! Please feel free to submit issues or pull requests to help improve the machine-universal.
 
 ## License
 
