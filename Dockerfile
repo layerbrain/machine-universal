@@ -51,6 +51,9 @@ RUN apt-get update \
         libuuid1 \
         libxml2-dev \
         libz3-dev \
+        libicu-dev \
+        libedit-dev \
+        libpython3-dev \
         make \
         moreutils \
         netcat-openbsd \
@@ -116,9 +119,10 @@ ENV PIPX_BIN_DIR=/root/.local/bin
 ENV PATH=$PIPX_BIN_DIR:$PATH
 RUN apt-get update && apt-get install -y pipx \
     && rm -rf /var/lib/apt/lists/* \
-    && pipx install poetry uv \
-    # Preinstall common packages for each version with pip cache
-    && --mount=type=cache,target=/root/.cache/pip \
+    && pipx install poetry uv
+
+# Preinstall common packages for each version with pip cache
+RUN --mount=type=cache,target=/root/.cache/pip \
     for pyv in $(ls ${PYENV_ROOT}/versions/); do \
         ${PYENV_ROOT}/versions/$pyv/bin/pip install --upgrade pip ruff black mypy pyright isort; \
     done
@@ -195,10 +199,13 @@ RUN mkdir /tmp/swiftly \
     && bash -lc "swiftly install --use ${SWIFT_VERSION}" \
     && rm -rf /tmp/swiftly
 
+ENV PATH=/root/.local/share/swiftly/toolchains/latest/usr/bin:$PATH
+
 ### RUBY ###
 
 ARG RUBY_VERSION=3.3
 
+ENV PATH=/root/.local/share/gem/ruby/3.3.0/bin:$PATH
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ruby-full \
         rbenv \
@@ -209,6 +216,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ARG RUST_VERSION=stable
 
+ENV PATH=/root/.cargo/bin:$PATH
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
@@ -241,6 +249,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         valgrind \
         gdb \
     && rm -rf /var/lib/apt/lists/*
+    
 
 ### DOTNET ###
 
@@ -301,15 +310,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         postgresql-client \
         mysql-client \
         redis-tools \
-        mongodb-clients \
-    && rm -rf /var/lib/apt/lists/*
-
-### SETUP SCRIPTS ###
-
-COPY setup.sh /opt/layerbrain/setup.sh
-RUN chmod +x /opt/layerbrain/setup.sh
-
-COPY start.sh /opt/start.sh
+        mongodb-clients \h
+    && rm -rf /var/lib/apt/lists/*RUN chmod +x /opt/layerbrain/setup.sh
+### SETUP SCRIPTS ###h
+RUN chmod +x /opt/layerbrain/setup.shh
+RUN chmod +x /opt/layerbrain/setup.shRUN chmod +x /opt/start.sh
+h
+COPY start.sh /opt/start.shRUN chmod +x /opt/start.shENTRYPOINT ["/opt/start.sh"]
 RUN chmod +x /opt/start.sh
-
 ENTRYPOINT ["/opt/start.sh"]
+
+
+
+ENTRYPOINT ["/opt/start.sh"]ENTRYPOINT ["/opt/start.sh"]
