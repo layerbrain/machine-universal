@@ -237,7 +237,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ARG DOTNET_VERSION=8.0
 
-RUN wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh \
+RUN curl -L https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && chmod +x /tmp/dotnet-install.sh \
     && /tmp/dotnet-install.sh --channel ${DOTNET_VERSION} \
     && rm /tmp/dotnet-install.sh \
