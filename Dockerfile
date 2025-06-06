@@ -104,17 +104,22 @@ RUN git -c advice.detachedHead=0 clone --branch ${PYENV_VERSION} --depth 1 https
     && echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile \
     && echo 'export PATH="$$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"' >> /etc/profile \
     && echo 'eval "$(pyenv init - bash)"' >> /etc/profile \
-    && cd ${PYENV_ROOT} && src/configure && make -C src \
-    && pyenv install 3.10 3.11 3.12 3.13 \
+    && cd ${PYENV_ROOT} && src/configure && make -C src
+
+# Install Python versions with cache mount for downloads
+RUN --mount=type=cache,target=/root/.pyenv/cache \
+    pyenv install 3.10 3.11 3.12 3.13 \
     && pyenv global ${PYTHON_VERSION}
+
 # Install pipx for common global package managers
 ENV PIPX_BIN_DIR=/root/.local/bin
 ENV PATH=$PIPX_BIN_DIR:$PATH
 RUN apt-get update && apt-get install -y pipx \
     && rm -rf /var/lib/apt/lists/* \
     && pipx install poetry uv \
-    # Preinstall common packages for each version
-    && for pyv in $(ls ${PYENV_ROOT}/versions/); do \
+    # Preinstall common packages for each version with pip cache
+    && --mount=type=cache,target=/root/.cache/pip \
+    for pyv in $(ls ${PYENV_ROOT}/versions/); do \
         ${PYENV_ROOT}/versions/$pyv/bin/pip install --upgrade pip ruff black mypy pyright isort; \
     done
 # Reduce the verbosity of uv
@@ -204,7 +209,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ARG RUST_VERSION=stable
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/root/.cargo/git \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
         sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} \
     && . "$HOME/.cargo/env" \
     && rustup component add rustfmt clippy \
@@ -215,7 +222,8 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
 ARG GO_VERSION=1.23.8
 
 ENV PATH=/usr/local/go/bin:$HOME/go/bin:$PATH
-RUN curl -L --fail https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -o /tmp/go.tar.gz \
+RUN --mount=type=cache,target=/root/go/pkg \
+    curl -L --fail https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -o /tmp/go.tar.gz \
     && tar -C /usr/local -xzf /tmp/go.tar.gz \
     && rm /tmp/go.tar.gz \
     && go install golang.org/x/tools/gopls@latest \
