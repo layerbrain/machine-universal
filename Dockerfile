@@ -13,6 +13,7 @@ RUN apt-get update \
         build-essential \
         bzr \
         curl \
+        wget \
         default-libmysqlclient-dev \
         dnsutils \
         gettext \
