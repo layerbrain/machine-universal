@@ -310,16 +310,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         postgresql-client \
         mysql-client \
         redis-tools \
-        mongodb-clients \h
-    && rm -rf /var/lib/apt/lists/*RUN chmod +x /opt/layerbrain/setup.sh
-### SETUP SCRIPTS ###h
-RUN chmod +x /opt/layerbrain/setup.shh
-RUN chmod +x /opt/layerbrain/setup.shRUN chmod +x /opt/start.sh
-h
-COPY start.sh /opt/start.shRUN chmod +x /opt/start.shENTRYPOINT ["/opt/start.sh"]
+        mongodb-clients \
+    && rm -rf /var/lib/apt/lists/*
+
+### SETUP SCRIPTS ###
+
+COPY setup.sh /opt/layerbrain/setup.sh
+RUN chmod +x /opt/layerbrain/setup.sh
+
+COPY start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
+
 ENTRYPOINT ["/opt/start.sh"]
-
-
-
-ENTRYPOINT ["/opt/start.sh"]ENTRYPOINT ["/opt/start.sh"]
