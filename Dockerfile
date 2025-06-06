@@ -170,10 +170,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && unzip gradle-${GRADLE_VERSION}-bin.zip \
     && rm gradle-${GRADLE_VERSION}-bin.zip \
     && mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
-    # Install Maven
-    && curl -LO "https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
-    && tar -xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz \
-    && rm apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+    # Install Maven - using a more specific mirror URL
+    && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz \
+    && tar -xzf maven.tar.gz \
+    && rm maven.tar.gz \
     && mv apache-maven-${MAVEN_VERSION} "${MAVEN_HOME}/"
 
 ### SWIFT ###
