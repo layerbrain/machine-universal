@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "=================================="
-echo "Welcome to Layerbrain!"
+echo "Welcome to Layerbrain!!!"
 echo "=================================="
 
 # Run setup script
