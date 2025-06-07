@@ -12,12 +12,22 @@ env:
 
 jobs:
   build-arm64:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     uses: ./.github/workflows/build-image.yml
     with:
       platform: linux/arm64
     secrets: inherit
 
   build-amd64:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     uses: ./.github/workflows/build-image.yml
     with:
       platform: linux/amd64
