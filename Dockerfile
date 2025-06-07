@@ -1,13 +1,20 @@
-FROM ubuntu:24.04
+# syntax=docker/dockerfile:1.4
+###############################################################################
+#                                  BUILDER                                     #
+###############################################################################
+FROM ubuntu:24.04 AS builder
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    HOME=/root \
+    PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:$PATH
 
-ENV LANG="C.UTF-8"
-ENV HOME=/root
-
-### BASE ###
-
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+###############################################################################
+# 1) APT + all base packages (no cache mount to avoid lock issues)
+###############################################################################
+RUN rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock* /var/cache/apt/archives/lock && \
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
         binutils \
         sudo \
         build-essential \
@@ -53,7 +60,6 @@ RUN apt-get update \
         libz3-dev \
         libicu-dev \
         libedit-dev \
-        libpython3-dev \
         make \
         moreutils \
         netcat-openbsd \
@@ -74,13 +80,14 @@ RUN apt-get update \
         xz-utils \
         zip \
         zlib1g \
-        zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
+        zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-### BASH ###
-
-# Install latest bash and common shell tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
+###############################################################################
+# 2) Bash and shell tools
+###############################################################################
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         bash \
         bash-completion \
         zsh \
@@ -92,45 +99,53 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         tree \
         vim \
         nano \
-        emacs-nox \
-    && rm -rf /var/lib/apt/lists/*
+        emacs-nox && \
+    rm -rf /var/lib/apt/lists/*
 
-### PYTHON ###
-
+###############################################################################
+# 3) Python (pyenv + versions) + pipx + pip cache
+###############################################################################
 ARG PYENV_VERSION=v2.5.5
 ARG PYTHON_VERSION=3.13
-
-# Install pyenv
 ENV PYENV_ROOT=/root/.pyenv
 ENV PATH=$PYENV_ROOT/bin:$PATH
-RUN git -c advice.detachedHead=0 clone --branch ${PYENV_VERSION} --depth 1 https://github.com/pyenv/pyenv.git "${PYENV_ROOT}" \
-    && echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile \
-    && echo 'export PATH="$$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"' >> /etc/profile \
-    && echo 'eval "$(pyenv init - bash)"' >> /etc/profile \
-    && cd ${PYENV_ROOT} && src/configure && make -C src
 
-# Install Python versions with cache mount for downloads
+RUN git -c advice.detachedHead=0 clone --branch ${PYENV_VERSION} --depth 1 https://github.com/pyenv/pyenv.git "${PYENV_ROOT}" && \
+    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile && \
+    echo 'export PATH="$$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"' >> /etc/profile && \
+    echo 'eval "$(pyenv init - bash)"' >> /etc/profile && \
+    cd ${PYENV_ROOT} && src/configure && make -C src
+
+# Install Python versions separately for better caching
 RUN --mount=type=cache,target=/root/.pyenv/cache \
-    pyenv install 3.10 3.11 3.12 3.13 \
-    && pyenv global ${PYTHON_VERSION}
+    pyenv install 3.10
 
-# Install pipx for common global package managers
+RUN --mount=type=cache,target=/root/.pyenv/cache \
+    pyenv install 3.11
+
+RUN --mount=type=cache,target=/root/.pyenv/cache \
+    pyenv install 3.12
+
+RUN --mount=type=cache,target=/root/.pyenv/cache \
+    pyenv install 3.13 && pyenv global ${PYTHON_VERSION}
+
 ENV PIPX_BIN_DIR=/root/.local/bin
 ENV PATH=$PIPX_BIN_DIR:$PATH
-RUN apt-get update && apt-get install -y pipx \
-    && rm -rf /var/lib/apt/lists/* \
-    && pipx install poetry uv
 
-# Preinstall common packages for each version with pip cache
+RUN rm -f /var/lib/apt/lists/lock && \
+    apt-get update && apt-get install -y pipx && rm -rf /var/lib/apt/lists/* && \
+    pipx install poetry uv
+
 RUN --mount=type=cache,target=/root/.cache/pip \
     for pyv in $(ls ${PYENV_ROOT}/versions/); do \
         ${PYENV_ROOT}/versions/$pyv/bin/pip install --upgrade pip ruff black mypy pyright isort; \
     done
-# Reduce the verbosity of uv
+
 ENV UV_NO_PROGRESS=1
 
-### NODE ###
-
+###############################################################################
+# 4) Node + Bun
+###############################################################################
 ARG NVM_VERSION=v0.40.2
 ARG NODE_VERSION=22
 
@@ -139,30 +154,29 @@ ENV COREPACK_DEFAULT_TO_LATEST=0
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 ENV COREPACK_ENABLE_AUTO_PIN=0
 ENV COREPACK_ENABLE_STRICT=0
-RUN git -c advice.detachedHead=0 clone --branch ${NVM_VERSION} --depth 1 https://github.com/nvm-sh/nvm.git "${NVM_DIR}" \
-    && echo 'source $NVM_DIR/nvm.sh' >> /etc/profile \
-    && echo "prettier\neslint\ntypescript" > $NVM_DIR/default-packages \
-    && . $NVM_DIR/nvm.sh \
-    && nvm install 18 \
-    && nvm install 20 \
-    && nvm install 22 \
-    && nvm alias default $NODE_VERSION \
-    && corepack enable \
-    && corepack install -g yarn pnpm npm
 
-### BUN ###
+RUN git -c advice.detachedHead=0 clone --branch ${NVM_VERSION} --depth 1 https://github.com/nvm-sh/nvm.git "${NVM_DIR}" && \
+    echo 'source $NVM_DIR/nvm.sh' >> /etc/profile && \
+    echo "prettier\neslint\ntypescript" > $NVM_DIR/default-packages && \
+    . $NVM_DIR/nvm.sh && \
+    nvm install 18 && \
+    nvm install 20 && \
+    nvm install 22 && \
+    nvm alias default $NODE_VERSION && \
+    corepack enable && \
+    corepack install -g yarn pnpm npm
 
 ARG BUN_VERSION=latest
-
 ENV BUN_INSTALL=/root/.bun
 ENV PATH="$BUN_INSTALL/bin:$PATH"
 
-RUN curl -fsSL https://bun.sh/install | bash \
-    && echo 'export BUN_INSTALL=/root/.bun' >> /etc/profile \
-    && echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /etc/profile
+RUN curl -fsSL https://bun.sh/install | bash && \
+    echo 'export BUN_INSTALL=/root/.bun' >> /etc/profile && \
+    echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /etc/profile
 
-### JAVA ###
-
+###############################################################################
+# 5) Java + Gradle + Maven
+###############################################################################
 ARG JAVA_VERSION=21
 ARG GRADLE_VERSION=8.14
 ARG MAVEN_VERSION=3.9.6
@@ -171,75 +185,81 @@ ENV GRADLE_HOME=/opt/gradle
 ENV MAVEN_HOME=/opt/maven
 ENV PATH=$GRADLE_HOME/bin:$MAVEN_HOME/bin:$PATH
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        openjdk-${JAVA_VERSION}-jdk \
-    && rm -rf /var/lib/apt/lists/* \
-    # Install Gradle
-    && curl -LO "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
-    && unzip gradle-${GRADLE_VERSION}-bin.zip \
-    && rm gradle-${GRADLE_VERSION}-bin.zip \
-    && mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
-    # Install Maven - using a more specific mirror URL
-    && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz \
-    && tar -xzf maven.tar.gz \
-    && rm maven.tar.gz \
-    && mv apache-maven-${MAVEN_VERSION} "${MAVEN_HOME}/"
+RUN --mount=type=cache,target=/var/cache/apt \
+    rm -f /var/lib/apt/lists/lock && \
+    apt-get update && apt-get install -y --no-install-recommends openjdk-${JAVA_VERSION}-jdk && rm -rf /var/lib/apt/lists/*
 
-### SWIFT ###
+RUN curl -LO "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" && \
+    unzip gradle-${GRADLE_VERSION}-bin.zip && \
+    rm gradle-${GRADLE_VERSION}-bin.zip && \
+    mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/"
 
+RUN curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz && \
+    tar -xzf maven.tar.gz && rm maven.tar.gz && mv apache-maven-${MAVEN_VERSION} "${MAVEN_HOME}/"
+
+###############################################################################
+# 6) Swift
+###############################################################################
 ARG SWIFT_VERSION=6.1
 
-# Install swift
-RUN mkdir /tmp/swiftly \
-    && cd /tmp/swiftly \
-    && curl -O https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz \
-    && tar zxf swiftly-$(uname -m).tar.gz \
-    && ./swiftly init --quiet-shell-followup -y \
-    && echo '. ~/.local/share/swiftly/env.sh' >> /etc/profile \
-    && bash -lc "swiftly install --use ${SWIFT_VERSION}" \
-    && rm -rf /tmp/swiftly
+RUN mkdir /tmp/swiftly && cd /tmp/swiftly && \
+    curl -O https://download.swift.org/swiftly/linux/swiftly-$(uname -m).tar.gz && \
+    tar zxf swiftly-$(uname -m).tar.gz && \
+    ./swiftly init --quiet-shell-followup -y && \
+    echo '. ~/.local/share/swiftly/env.sh' >> /etc/profile && \
+    bash -lc "swiftly install --use ${SWIFT_VERSION}" && \
+    rm -rf /tmp/swiftly
 
 ENV PATH=/root/.local/share/swiftly/toolchains/latest/usr/bin:$PATH
 
-### RUBY ###
-
+###############################################################################
+# 7) Ruby
+###############################################################################
 ARG RUBY_VERSION=3.3
-
 ENV PATH=/root/.local/share/gem/ruby/3.3.0/bin:$PATH
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ruby-full \
-        rbenv \
-    && rm -rf /var/lib/apt/lists/* \
-    && gem install bundler rails
 
-### RUST ###
+RUN rm -f /var/lib/apt/lists/lock && \
+    apt-get update && apt-get install -y --no-install-recommends ruby-full rbenv && rm -rf /var/lib/apt/lists/* && \
+    gem install bundler rails
 
+###############################################################################
+# 8) Rust
+###############################################################################
 ARG RUST_VERSION=stable
 
-ENV PATH=/root/.cargo/bin:$PATH
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
-        sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} \
-    && . "$HOME/.cargo/env" \
-    && rustup component add rustfmt clippy \
-    && cargo install sccache
+        sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} && \
+    . "$HOME/.cargo/env" && \
+    rustup component add rustfmt clippy && \
+    cargo install sccache
 
-### GO ###
-
+###############################################################################
+# 9) Go per-arch
+###############################################################################
 ARG GO_VERSION=1.23.8
+ARG TARGETPLATFORM
 
-ENV PATH=/usr/local/go/bin:$HOME/go/bin:$PATH
 RUN --mount=type=cache,target=/root/go/pkg \
-    curl -L --fail https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz -o /tmp/go.tar.gz \
-    && tar -C /usr/local -xzf /tmp/go.tar.gz \
-    && rm /tmp/go.tar.gz \
-    && go install golang.org/x/tools/gopls@latest \
-    && go install github.com/go-delve/delve/cmd/dlv@latest
+    set -eux; \
+    case "${TARGETPLATFORM}" in \
+      "linux/amd64") GOARCH=amd64;; \
+      "linux/arm64") GOARCH=arm64;; \
+      *) echo "Unsupported: ${TARGETPLATFORM}" >&2; exit 1;; \
+    esac && \
+    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${GOARCH}.tar.gz" -o /tmp/go.tar.gz && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz && \
+    /usr/local/go/bin/go install golang.org/x/tools/gopls@latest && \
+    /usr/local/go/bin/go install github.com/go-delve/delve/cmd/dlv@latest
 
-### C/C++ ###
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
+###############################################################################
+# 10) C/C++
+###############################################################################
+RUN --mount=type=cache,target=/var/cache/apt \
+    rm -f /var/lib/apt/lists/lock && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         clang \
         clang-format \
         clang-tidy \
@@ -247,87 +267,167 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ccache \
         ninja-build \
         valgrind \
-        gdb \
-    && rm -rf /var/lib/apt/lists/*
-    
+        gdb && \
+    rm -rf /var/lib/apt/lists/*
 
-### DOTNET ###
-
+###############################################################################
+# 11) .NET
+###############################################################################
 ARG DOTNET_VERSION=8.0
 
-RUN curl -L https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
-    && chmod +x /tmp/dotnet-install.sh \
-    && /tmp/dotnet-install.sh --channel ${DOTNET_VERSION} \
-    && rm /tmp/dotnet-install.sh \
-    && echo 'export DOTNET_ROOT=$HOME/.dotnet' >> /etc/profile \
-    && echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /etc/profile
+RUN curl -L https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
+    chmod +x /tmp/dotnet-install.sh && \
+    /tmp/dotnet-install.sh --channel ${DOTNET_VERSION} && \
+    rm /tmp/dotnet-install.sh && \
+    echo 'export DOTNET_ROOT=$HOME/.dotnet' >> /etc/profile && \
+    echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /etc/profile
 
-### PHP ###
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
+###############################################################################
+# 12) PHP
+###############################################################################
+RUN --mount=type=cache,target=/var/cache/apt \
+    rm -f /var/lib/apt/lists/lock && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         php \
         php-cli \
         php-curl \
         php-mbstring \
         php-xml \
         php-zip \
-        composer \
-    && rm -rf /var/lib/apt/lists/*
+        composer && \
+    rm -rf /var/lib/apt/lists/*
 
-### BAZEL ###
+###############################################################################
+# 13) Bazel
+###############################################################################
+RUN curl -L --fail https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o /usr/local/bin/bazelisk && \
+    chmod +x /usr/local/bin/bazelisk && \
+    ln -s /usr/local/bin/bazelisk /usr/local/bin/bazel
 
-RUN curl -L --fail https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o /usr/local/bin/bazelisk \
-    && chmod +x /usr/local/bin/bazelisk \
-    && ln -s /usr/local/bin/bazelisk /usr/local/bin/bazel
+###############################################################################
+# 14) Docker CLI
+###############################################################################
+RUN --mount=type=cache,target=/var/cache/apt \
+    rm -f /var/lib/apt/lists/lock && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends docker.io docker-compose && \
+    rm -rf /var/lib/apt/lists/*
 
-### DOCKER ###
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        docker.io \
-        docker-compose \
-    && rm -rf /var/lib/apt/lists/*
-
-### CLOUD TOOLS ###
-
+###############################################################################
+# 15) Cloud Tools
+###############################################################################
 # AWS CLI
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" \
-    && unzip /tmp/awscliv2.zip -d /tmp/ \
-    && /tmp/aws/install \
-    && rm -rf /tmp/aws*
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" && \
+    unzip /tmp/awscliv2.zip -d /tmp/&& \
+    /tmp/aws/install && \
+    rm -rf /tmp/aws*
 
 # Google Cloud SDK
-RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnupg \
-    && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
-    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg \
-    && apt-get update && apt-get install -y google-cloud-cli \
-    && rm -rf /var/lib/apt/lists/*
+RUN rm -f /var/lib/apt/lists/lock && \
+    apt-get update && \
+    apt-get install -y apt-transport-https ca-certificates gnupg && \
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
+    apt-get update && \
+    apt-get install -y google-cloud-cli && \
+    rm -rf /var/lib/apt/lists/*
 
 # Azure CLI
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-### DATABASE TOOLS ###
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
+###############################################################################
+# 16) Database Tools
+###############################################################################
+RUN rm -f /var/lib/apt/lists/lock && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         postgresql-client \
         mysql-client \
-        redis-tools \
-    && rm -rf /var/lib/apt/lists/*
+        redis-tools && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install MongoDB Shell separately
+# MongoDB Shell
 RUN curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
-        gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg \
-    && echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
-        tee /etc/apt/sources.list.d/mongodb-org-7.0.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends mongodb-mongosh \
-    && rm -rf /var/lib/apt/lists/*
+        gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg && \
+    echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && \
+    rm -f /var/lib/apt/lists/lock && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends mongodb-mongosh && \
+    rm -rf /var/lib/apt/lists/*
 
-### SETUP SCRIPTS ###
+###############################################################################
+# 17) Python Async Libraries
+###############################################################################
+RUN --mount=type=cache,target=/root/.cache/pip \
+    for pyv in $(ls ${PYENV_ROOT}/versions/); do \
+        ${PYENV_ROOT}/versions/$pyv/bin/pip install \
+            asyncpg \
+            aiosqlite \
+            aiohttp \
+            asyncssh \
+            httpx \
+            uvloop \
+            uvicorn; \
+    done
 
+###############################################################################
+# Copy setup and start scripts
+###############################################################################
 COPY setup.sh /opt/layerbrain/setup.sh
 RUN chmod +x /opt/layerbrain/setup.sh
-
 COPY start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
+
+###############################################################################
+#                                RUNTIME                                     #
+###############################################################################
+FROM ubuntu:24.04 AS runtime
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    HOME=/root \
+    PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:$PATH
+
+# Install minimal runtime dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        git \
+        openssh-client \
+        libssl3 \
+        libicu74 \
+        libc6 \
+        libgcc-s1 \
+        libstdc++6 \
+        libncurses6 \
+        libreadline8 \
+        libsqlite3-0 \
+        libffi8 \
+        libbz2-1.0 \
+        liblzma5 \
+        zlib1g \
+        libxml2 \
+        libxslt1.1 \
+        libpq5 \
+        libmysqlclient21 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy language runtimes and tools
+COPY --from=builder /usr/local/go /usr/local/go
+COPY --from=builder /root/.cargo /root/.cargo
+COPY --from=builder /root/.pyenv /root/.pyenv
+COPY --from=builder /root/.nvm /root/.nvm
+COPY --from=builder /root/.bun /root/.bun
+COPY --from=builder /root/.local /root/.local
+COPY --from=builder /opt/gradle /opt/gradle
+COPY --from=builder /opt/maven /opt/maven
+COPY --from=builder /root/.dotnet /root/.dotnet
+COPY --from=builder /usr/local/bin/bazel* /usr/local/bin/
+COPY --from=builder /etc/profile /etc/profile
+
+# Copy scripts
+COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
+COPY --from=builder /opt/start.sh /opt/start.sh
 
 ENTRYPOINT ["/opt/start.sh"]
