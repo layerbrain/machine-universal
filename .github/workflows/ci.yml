@@ -12,12 +12,12 @@ env:
 
 jobs:
   build-arm64:
+    runs-on: macos-latest
     permissions:
       contents: read
       packages: write
       id-token: write
       attestations: write
-    runs-on: macos-latest
     uses: ./.github/workflows/build-image.yml
     with:
       platform: linux/arm64
@@ -33,4 +33,3 @@ jobs:
     with:
       platform: linux/amd64
     secrets: inherit
-
