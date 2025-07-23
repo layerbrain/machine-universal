@@ -18,10 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+
       - name: Setup Docker and Docker Compose on macOS
         if: runner.os == 'macos'
         run: |
-          brew install docker docker-compose
+          brew install docker docker-compose colima
           mkdir -p ~/.docker/cli-plugins
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           colima start --cpu 4 --memory 8
