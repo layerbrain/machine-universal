@@ -10,15 +10,25 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+
 jobs:
   build-arm64:
     runs-on: macos-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify Docker installation
+      - name: Setup Docker and Docker Compose on macOS
+        if: runner.os == 'macos'
         run: |
-          docker --version
+          brew install docker docker-compose
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+          colima start --cpu 4 --memory 8
+
+      - name: Verify Docker installation and daemon
+        run: |
+          docker version
           docker info
 
       - name: Log in to Container Registry
@@ -66,7 +76,6 @@ jobs:
           push-to-registry: true
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
-
 
   build-amd64:
     runs-on: ubuntu-latest
