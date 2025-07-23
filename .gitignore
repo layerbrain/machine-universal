@@ -1,0 +1,15 @@
+.git
+README.md
+LICENSE
+.DS_Store
+*.log
+*.tmp
+.env*
+.vscode
+.idea
+__pycache__
+*.pyc
+node_modules
+target
+dist
+build
