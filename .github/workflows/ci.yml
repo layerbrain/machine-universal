@@ -43,14 +43,19 @@ jobs:
             type=raw,value=amd64-latest
 
       - name: Build and push amd64 image
+        id: docker_build
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
           build-args: BUILDKIT_INLINE_CACHE=1
 
       - name: Generate artifact attestation
@@ -98,14 +103,19 @@ jobs:
             type=raw,value=arm64-latest
 
       - name: Build and push arm64 image
+        id: docker_build
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/arm64
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
           build-args: BUILDKIT_INLINE_CACHE=1
 
       - name: Generate artifact attestation
