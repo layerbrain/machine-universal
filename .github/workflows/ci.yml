@@ -12,7 +12,7 @@ env:
 
 jobs:
   build-arm64:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     permissions:
       contents: read
       packages: write
@@ -73,6 +73,7 @@ jobs:
           subject-digest: ${{ steps.docker_build.outputs.digest }}
 
   build-amd64:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -130,6 +131,3 @@ jobs:
           push-to-registry: true
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
-    with:
-      platform: linux/amd64
-    secrets: inherit
