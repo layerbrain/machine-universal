@@ -1,6 +1,4 @@
 .git
-README.md
-LICENSE
 .DS_Store
 *.log
 *.tmp
