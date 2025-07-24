@@ -374,9 +374,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 ###############################################################################
 # Copy setup and start scripts
 ###############################################################################
-COPY setup.sh /opt/layerbrain/setup.sh
+COPY ../../setup.sh /opt/layerbrain/setup.sh
 RUN chmod +x /opt/layerbrain/setup.sh
-COPY start.sh /opt/start.sh
+COPY ../../start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
 
 ###############################################################################

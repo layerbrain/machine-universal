@@ -132,10 +132,10 @@ git clone https://github.com/layerbrain/machine-universal.git
 cd machine-universal
 
 # Build universal image
-docker build -t machine-universal:universal images/universal/
+docker build -f images/universal/Dockerfile -t machine-universal:universal .
 
 # Build minimal image  
-docker build -t machine-universal:minimal images/minimal/
+docker build -f images/minimal/Dockerfile -t machine-universal:minimal .
 ```
 
 ## Use Cases

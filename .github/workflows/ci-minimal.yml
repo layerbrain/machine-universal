@@ -46,7 +46,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v6
         with:
-          context: images/minimal
+          context: .
+          file: images/minimal/Dockerfile
           platforms: linux/amd64
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -101,7 +102,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v6
         with:
-          context: images/minimal
+          context: .
+          file: images/minimal/Dockerfile
           platforms: linux/arm64
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
