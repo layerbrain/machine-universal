@@ -40,8 +40,7 @@ RUN apt-get update && \
         python3 \
         python3-pip \
         python3-dev && \
-    rm -rf /var/lib/apt/lists/* && \
-    python3 -m pip install --upgrade pip --break-system-packages
+    rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
 # Node.js (single version)
