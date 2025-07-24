@@ -21,10 +21,10 @@ Full-featured development environment with all languages and tools:
 
 ```bash
 # AMD64
-docker pull ghcr.io/aaronkazah/universal-machine:universal-amd64-latest
+docker pull ghcr.io/layerbrain/machine-universal:universal-amd64-latest
 
 # ARM64  
-docker pull ghcr.io/aaronkazah/universal-machine:universal-arm64-latest
+docker pull ghcr.io/layerbrain/machine-universal:universal-arm64-latest
 ```
 
 ### Minimal Image
@@ -32,10 +32,10 @@ Lightweight environment with core languages only:
 
 ```bash
 # AMD64
-docker pull ghcr.io/aaronkazah/universal-machine:minimal-amd64-latest
+docker pull ghcr.io/layerbrain/machine-universal:minimal-amd64-latest
 
 # ARM64
-docker pull ghcr.io/aaronkazah/universal-machine:minimal-arm64-latest
+docker pull ghcr.io/layerbrain/machine-universal:minimal-arm64-latest
 ```
 
 ## Quick Start
@@ -47,13 +47,13 @@ Run with your project mounted:
 docker run --rm -it \
     -v $(pwd):/workspace/$(basename $(pwd)) \
     -w /workspace/$(basename $(pwd)) \
-    ghcr.io/aaronkazah/universal-machine:universal-amd64-latest
+    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
 
 # Using minimal image
 docker run --rm -it \
     -v $(pwd):/workspace/$(basename $(pwd)) \
     -w /workspace/$(basename $(pwd)) \
-    ghcr.io/aaronkazah/universal-machine:minimal-amd64-latest
+    ghcr.io/layerbrain/machine-universal:minimal-amd64-latest
 ```
 
 ## Customizing Runtime Versions
@@ -79,7 +79,7 @@ docker run --rm -it \
     -e LAYERBRAIN_ENV_RUST_VERSION=nightly \
     -v $(pwd):/workspace/$(basename $(pwd)) \
     -w /workspace/$(basename $(pwd)) \
-    ghcr.io/aaronkazah/universal-machine:universal-amd64-latest
+    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
 ```
 
 ## Image Comparison
@@ -128,14 +128,14 @@ docker run --rm -it \
 To build the images locally:
 
 ```bash
-git clone https://github.com/aaronkazah/universal-machine.git
-cd universal-machine
+git clone https://github.com/layerbrain/machine-universal.git
+cd machine-universal
 
 # Build universal image
-docker build -t universal-machine:universal images/universal/
+docker build -t machine-universal:universal images/universal/
 
 # Build minimal image  
-docker build -t universal-machine:minimal images/minimal/
+docker build -t machine-universal:minimal images/minimal/
 ```
 
 ## Use Cases
