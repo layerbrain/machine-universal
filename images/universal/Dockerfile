@@ -378,7 +378,7 @@ ARG NEUTRONAPI_REFRESH=0
 RUN --mount=type=cache,target=/root/.cache/pip \
     bash -lc "echo NEUTRONAPI_REFRESH=${NEUTRONAPI_REFRESH} >/dev/null && \
     for pyv in $(ls ${PYENV_ROOT}/versions/); do \
-        ${PYENV_ROOT}/versions/$pyv/bin/pip install --no-cache-dir --upgrade neutronapi; \
+        ${PYENV_ROOT}/versions/$pyv/bin/python -m pip install --no-cache-dir --break-system-packages --upgrade neutronapi; \
     done"
 
 ###############################################################################
