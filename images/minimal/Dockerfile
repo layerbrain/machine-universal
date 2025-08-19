@@ -101,6 +101,14 @@ COPY ../../start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
 
 ###############################################################################
+# NeutronAPI (install late for cache reuse; no pinning)
+###############################################################################
+ARG NEUTRONAPI_REFRESH=0
+RUN --mount=type=cache,target=/root/.cache/pip \
+    bash -lc "echo NEUTRONAPI_REFRESH=${NEUTRONAPI_REFRESH} >/dev/null && \
+    pip3 install --no-cache-dir --upgrade neutronapi"
+
+###############################################################################
 #                            MINIMAL RUNTIME                                 #
 ###############################################################################
 FROM ubuntu:24.04 AS runtime

@@ -372,6 +372,16 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     done
 
 ###############################################################################
+# 18) NeutronAPI (installed last for cache reuse; no pinning)
+###############################################################################
+ARG NEUTRONAPI_REFRESH=0
+RUN --mount=type=cache,target=/root/.cache/pip \
+    bash -lc "echo NEUTRONAPI_REFRESH=${NEUTRONAPI_REFRESH} >/dev/null && \
+    for pyv in $(ls ${PYENV_ROOT}/versions/); do \
+        ${PYENV_ROOT}/versions/$pyv/bin/pip install --no-cache-dir --upgrade neutronapi; \
+    done"
+
+###############################################################################
 # Copy setup and start scripts
 ###############################################################################
 COPY ../../setup.sh /opt/layerbrain/setup.sh

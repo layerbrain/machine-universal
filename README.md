@@ -13,6 +13,7 @@ This repository offers two variants:
 - **Cloud-ready**: AWS CLI, Google Cloud SDK, and Azure CLI pre-installed
 - **Database clients**: PostgreSQL, MySQL, Redis, and MongoDB clients included
 - **Zero setup**: Works out of the box with sensible defaults
+- **Async API ready**: Includes Uvicorn and NeutronAPI for high-performance Python APIs
 
 ## Available Images
 
@@ -90,11 +91,13 @@ docker run --rm -it \
 - **Cloud CLIs**: AWS CLI, Google Cloud SDK, Azure CLI
 - **Database Clients**: PostgreSQL, MySQL, Redis, MongoDB
 - **Development Tools**: Docker, Bazel, editors, shells
+- **Python Async**:NeutronAPI preinstalled
 - **Size**: ~4-6GB compressed
 
 ### Minimal Image includes:
 - **Languages**: Python 3.13, Node.js 22, Rust, Go, C/C++ (gcc/clang)
 - **Essential Tools**: pip, npm, yarn, pnpm, cargo, rustfmt, clippy, make, cmake
+- **Python Async**: NeutronAPI preinstalled
 - **Version Control**: git
 - **Size**: ~800MB-1.2GB compressed
 
@@ -123,6 +126,10 @@ docker run --rm -it \
 - **Cloud CLIs**: AWS CLI, gcloud, Azure CLI
 - **Database Clients**: psql, mysql, redis-cli, mongosh
 
+### Python Async Frameworks
+- **Uvicorn**: High-performance ASGI server
+- **NeutronAPI**: Async-first API framework (installed latest)
+
 ## Building Locally
 
 To build the images locally:
@@ -136,6 +143,12 @@ docker build -f images/universal/Dockerfile -t machine-universal:universal .
 
 # Build minimal image  
 docker build -f images/minimal/Dockerfile -t machine-universal:minimal .
+
+# Always get the latest NeutronAPI (optional cache-bust)
+# Add a changing build-arg to re-run the NeutronAPI install layer
+docker build -f images/universal/Dockerfile \
+  --build-arg NEUTRONAPI_REFRESH=$(date -u +%s) \
+  -t machine-universal:universal-latest-neutron .
 ```
 
 ## Use Cases
@@ -159,3 +172,26 @@ We welcome contributions! Please feel free to submit issues or pull requests to 
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
+
+## NeutronAPI
+
+High-performance Python framework built directly on Uvicorn with built-in database models, migrations, and background tasks. If you want Django that was built async-first, this is for you. Batteries-included async API framework with command-line management.
+
+- Installation: `pip install neutronapi`
+- In these images: NeutronAPI is preinstalled without version pinning so you get the latest available.
+- Cache strategy: It’s installed at the end of the Docker build so earlier layers stay cached. To force fetching the newest release on rebuild, pass a changing build arg:
+
+```bash
+docker build -f images/universal/Dockerfile \
+  --build-arg NEUTRONAPI_REFRESH=$(date -u +%s) \
+  -t machine-universal:universal .
+```
+
+Quick start (typical ASGI pattern with Uvicorn):
+
+```bash
+# after adding your app module (e.g., app.py exposing `app`)
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+Refer to NeutronAPI’s documentation for its CLI and project scaffolding commands if available.
