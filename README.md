@@ -91,13 +91,13 @@ docker run --rm -it \
 - **Cloud CLIs**: AWS CLI, Google Cloud SDK, Azure CLI
 - **Database Clients**: PostgreSQL, MySQL, Redis, MongoDB
 - **Development Tools**: Docker, Bazel, editors, shells
-- **Python Async**:NeutronAPI preinstalled
+- **API Frameworks**:NeutronAPI preinstalled
 - **Size**: ~4-6GB compressed
 
 ### Minimal Image includes:
 - **Languages**: Python 3.13, Node.js 22, Rust, Go, C/C++ (gcc/clang)
 - **Essential Tools**: pip, npm, yarn, pnpm, cargo, rustfmt, clippy, make, cmake
-- **Python Async**: NeutronAPI preinstalled
+- **API Frameworks**: NeutronAPI preinstalled
 - **Version Control**: git
 - **Size**: ~800MB-1.2GB compressed
 
