@@ -388,6 +388,8 @@ COPY ../../setup.sh /opt/layerbrain/setup.sh
 RUN chmod +x /opt/layerbrain/setup.sh
 COPY ../../start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
+COPY ../../init-env.sh /opt/layerbrain/init-env.sh
+RUN chmod +x /opt/layerbrain/init-env.sh
 
 ###############################################################################
 #                                RUNTIME                                     #
@@ -405,6 +407,7 @@ RUN apt-get update && \
         curl \
         git \
         openssh-client \
+        openssh-server \
         libssl3 \
         libicu74 \
         libc6 \
@@ -439,5 +442,19 @@ COPY --from=builder /etc/profile /etc/profile
 # Copy scripts
 COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
 COPY --from=builder /opt/start.sh /opt/start.sh
+COPY --from=builder /opt/layerbrain/init-env.sh /opt/layerbrain/init-env.sh
+
+# Configure SSH and environment
+RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
+    chmod 700 /root/.ssh && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    echo 'source /opt/layerbrain/init-env.sh' >> /root/.bashrc && \
+    cp /opt/layerbrain/init-env.sh /etc/profile.d/layerbrain.sh && \
+    echo 'PermitUserEnvironment yes' >> /etc/ssh/sshd_config && \
+    echo 'PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.dotnet:/root/.dotnet/tools:/root/.local/share/swiftly/toolchains/latest/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' > /root/.ssh/environment && \
+    chmod 600 /root/.ssh/environment
+
+EXPOSE 22
 
 ENTRYPOINT ["/opt/start.sh"]

@@ -57,6 +57,62 @@ docker run --rm -it \
     ghcr.io/layerbrain/machine-universal:minimal-amd64-latest
 ```
 
+## SSH Access
+
+The universal machine supports SSH access for remote development. You can authenticate using either a password or SSH key.
+
+### Using Password Authentication
+
+```bash
+# Start container with SSH enabled
+docker run -d \
+    -p 2222:22 \
+    -e ROOT_PASSWORD="your-secure-password" \
+    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
+
+# Connect via SSH
+ssh -p 2222 root@localhost
+```
+
+### Using SSH Key Authentication
+
+```bash
+# Start container with your public key
+docker run -d \
+    -p 2222:22 \
+    -e SSH_PUBLIC_KEY="$(cat ~/.ssh/id_rsa.pub)" \
+    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
+
+# Connect via SSH with your private key
+ssh -p 2222 -i ~/.ssh/id_rsa root@localhost
+```
+
+### Using Both Password and SSH Key
+
+```bash
+docker run -d \
+    -p 2222:22 \
+    -e ROOT_PASSWORD="your-secure-password" \
+    -e SSH_PUBLIC_KEY="$(cat ~/.ssh/id_rsa.pub)" \
+    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
+```
+
+### Production Deployment
+
+For cloud deployments (DigitalOcean, AWS, etc.), expose port 22 and use your server's public IP:
+
+```bash
+# On your server
+docker run -d \
+    -p 22:22 \
+    -e SSH_PUBLIC_KEY="$(cat ~/.ssh/id_rsa.pub)" \
+    -v /workspace:/workspace \
+    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
+
+# From your local machine
+ssh root@your-server-ip
+```
+
 ## Customizing Runtime Versions
 
 The machine-universal supports dynamic configuration of language runtimes through environment variables. Set any of the following `LAYERBRAIN_ENV_*` variables to customize your environment:
