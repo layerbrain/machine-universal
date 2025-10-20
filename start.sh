@@ -30,7 +30,7 @@ source /opt/layerbrain/init-env.sh 2>/dev/null || true
 if [ -z "$SSH_ORIGINAL_COMMAND" ]; then
     exec $SHELL -l
 else
-    exec "$@"
+    exec $SHELL -c "$SSH_ORIGINAL_COMMAND"
 fi
 WRAPPER_EOF
     chmod +x /usr/local/bin/ssh-wrapper.sh
