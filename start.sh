@@ -27,12 +27,16 @@ if [ -n "$ROOT_PASSWORD" ] || [ -n "$SSH_PUBLIC_KEY" ]; then
     cat > /usr/local/bin/ssh-wrapper.sh << 'WRAPPER_EOF'
 #!/bin/bash
 source /opt/layerbrain/init-env.sh 2>/dev/null || true
-exec "$@"
+if [ -z "$SSH_ORIGINAL_COMMAND" ]; then
+    exec $SHELL -l
+else
+    exec "$@"
+fi
 WRAPPER_EOF
     chmod +x /usr/local/bin/ssh-wrapper.sh
 
     # Configure sshd to use wrapper for all commands
-    echo 'ForceCommand /usr/local/bin/ssh-wrapper.sh $SHELL -c "$SSH_ORIGINAL_COMMAND"' >> /etc/ssh/sshd_config
+    echo 'ForceCommand /usr/local/bin/ssh-wrapper.sh' >> /etc/ssh/sshd_config
 
     /usr/sbin/sshd
     echo "SSH server started on port 22."
