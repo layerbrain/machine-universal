@@ -41,7 +41,11 @@ jobs:
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /opt/hostedtoolcache
           sudo apt-get clean
+          sudo docker system prune -af --volumes
           df -h
 
       - name: Extract metadata
@@ -64,7 +68,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha,scope=minimal-amd64
-          cache-to: type=gha,mode=max,scope=minimal-amd64
+          cache-to: type=gha,mode=min,scope=minimal-amd64
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             NEUTRONAPI_REFRESH=${{ env.NEUTRONAPI_REFRESH }}
@@ -107,7 +111,11 @@ jobs:
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /opt/hostedtoolcache
           sudo apt-get clean
+          sudo docker system prune -af --volumes
           df -h
 
       - name: Extract metadata
@@ -130,7 +138,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha,scope=minimal-arm64
-          cache-to: type=gha,mode=max,scope=minimal-arm64
+          cache-to: type=gha,mode=min,scope=minimal-arm64
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             NEUTRONAPI_REFRESH=${{ env.NEUTRONAPI_REFRESH }}
