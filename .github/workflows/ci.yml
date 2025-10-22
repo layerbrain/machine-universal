@@ -45,6 +45,14 @@ jobs:
             type=ref,event=pr,suffix=-universal
             type=raw,value=universal-amd64-latest
 
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          docker system prune -af
+
       - name: Build and push universal amd64 image
         id: docker_build
         uses: docker/build-push-action@v6
@@ -55,7 +63,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: |
-            type=gha,scope=amd64
+            type=gha,scope=universal-amd64
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-universal-amd64
           cache-to: |
             type=gha,mode=max,scope=universal-amd64
@@ -119,7 +127,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: |
-            type=gha,scope=arm64
+            type=gha,scope=universal-arm64
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache-universal-arm64
           cache-to: |
             type=gha,mode=max,scope=universal-arm64
