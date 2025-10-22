@@ -45,14 +45,6 @@ jobs:
             type=ref,event=pr,suffix=-universal
             type=raw,value=universal-amd64-latest
 
-      - name: Free up disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          docker system prune -af
-
       - name: Build and push universal amd64 image
         id: docker_build
         uses: docker/build-push-action@v6
