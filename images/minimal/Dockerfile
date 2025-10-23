@@ -159,8 +159,6 @@ COPY --from=builder /opt/layerbrain/init-env.sh /opt/layerbrain/init-env.sh
 # Configure SSH and environment
 RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
     chmod 700 /root/.ssh && \
-    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     echo 'source /opt/layerbrain/init-env.sh' >> /root/.bashrc && \
     cp /opt/layerbrain/init-env.sh /etc/profile.d/layerbrain.sh && \
     echo 'PermitUserEnvironment yes' >> /etc/ssh/sshd_config && \

@@ -59,20 +59,7 @@ docker run --rm -it \
 
 ## SSH Access
 
-The universal machine supports SSH access for remote development. You can authenticate using either a password or SSH key.
-
-### Using Password Authentication
-
-```bash
-# Start container with SSH enabled
-docker run -d \
-    -p 2222:22 \
-    -e ROOT_PASSWORD="your-secure-password" \
-    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
-
-# Connect via SSH
-ssh -p 2222 root@localhost
-```
+The universal machine supports SSH access for remote development using SSH key authentication only.
 
 ### Using SSH Key Authentication
 
@@ -85,16 +72,6 @@ docker run -d \
 
 # Connect via SSH with your private key
 ssh -p 2222 -i ~/.ssh/id_rsa root@localhost
-```
-
-### Using Both Password and SSH Key
-
-```bash
-docker run -d \
-    -p 2222:22 \
-    -e ROOT_PASSWORD="your-secure-password" \
-    -e SSH_PUBLIC_KEY="$(cat ~/.ssh/id_rsa.pub)" \
-    ghcr.io/layerbrain/machine-universal:universal-amd64-latest
 ```
 
 ### Production Deployment
