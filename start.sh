@@ -7,6 +7,13 @@ echo "=================================="
 # Run setup script
 /opt/layerbrain/setup.sh
 
+# Resolve the root user's home directory in a cross-platform way.
+ROOT_HOME="$(getent passwd root 2>/dev/null | cut -d: -f6)"
+if [ -z "$ROOT_HOME" ]; then
+    ROOT_HOME="$(eval echo ~root)"
+fi
+ROOT_SSH_DIR="${ROOT_HOME}/.ssh"
+
 # Configure SSH if credentials provided
 if [ -n "$ROOT_PASSWORD" ]; then
     echo "root:$ROOT_PASSWORD" | chpasswd
@@ -14,10 +21,10 @@ if [ -n "$ROOT_PASSWORD" ]; then
 fi
 
 if [ -n "$SSH_PUBLIC_KEY" ]; then
-    mkdir -p /root/.ssh
-    chmod 700 /root/.ssh
-    echo "$SSH_PUBLIC_KEY" > /root/.ssh/authorized_keys
-    chmod 600 /root/.ssh/authorized_keys
+    mkdir -p "$ROOT_SSH_DIR"
+    chmod 700 "$ROOT_SSH_DIR"
+    echo "$SSH_PUBLIC_KEY" > "${ROOT_SSH_DIR}/authorized_keys"
+    chmod 600 "${ROOT_SSH_DIR}/authorized_keys"
     echo "SSH public key configured."
 fi
 
