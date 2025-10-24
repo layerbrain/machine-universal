@@ -119,23 +119,55 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HOME=/root \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:$PATH
 
-# Install minimal runtime dependencies
+# Install all essential development tools
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        build-essential \
         ca-certificates \
         curl \
+        wget \
         git \
+        git-lfs \
         openssh-server \
+        sudo \
+        vim \
+        nano \
+        tmux \
+        screen \
+        htop \
+        tree \
+        jq \
+        ripgrep \
+        make \
+        cmake \
+        pkg-config \
+        libssl-dev \
         libssl3 \
         libc6 \
+        libc6-dev \
         libgcc-s1 \
         libstdc++6 \
         libncurses6 \
+        libncurses-dev \
         libreadline8 \
+        libreadline-dev \
         libsqlite3-0 \
+        libsqlite3-dev \
         libffi8 \
+        libffi-dev \
         libbz2-1.0 \
-        zlib1g && \
+        libbz2-dev \
+        zlib1g \
+        zlib1g-dev \
+        python3-pip \
+        python3-dev \
+        clang \
+        gcc \
+        g++ \
+        ninja-build \
+        docker.io \
+        docker-compose \
+        iptables && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy language runtimes

@@ -400,30 +400,129 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HOME=/root \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:$PATH
 
-# Install minimal runtime dependencies
+# Install all development tools and runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        binutils \
+        sudo \
+        build-essential \
+        bzr \
         ca-certificates \
         curl \
+        wget \
+        default-libmysqlclient-dev \
+        dnsutils \
+        gettext \
         git \
+        git-lfs \
+        gnupg2 \
+        inotify-tools \
+        iputils-ping \
+        jq \
+        libbz2-dev \
+        libbz2-1.0 \
+        libc6 \
+        libc6-dev \
+        libcurl4-openssl-dev \
+        libdb-dev \
+        libedit2 \
+        libffi-dev \
+        libffi8 \
+        libgcc-13-dev \
+        libgcc1 \
+        libgcc-s1 \
+        libgdbm-compat-dev \
+        libgdbm-dev \
+        libgdiplus \
+        libgssapi-krb5-2 \
+        libicu74 \
+        liblzma-dev \
+        liblzma5 \
+        libncurses-dev \
+        libncurses6 \
+        libncursesw5-dev \
+        libnss3-dev \
+        libpq-dev \
+        libpq5 \
+        libpsl-dev \
+        libpython3-dev \
+        libreadline-dev \
+        libreadline8 \
+        libsqlite3-dev \
+        libsqlite3-0 \
+        libssl-dev \
+        libssl3 \
+        libstdc++-13-dev \
+        libstdc++6 \
+        libunwind8 \
+        libuuid1 \
+        libxml2 \
+        libxml2-dev \
+        libxslt1.1 \
+        libz3-dev \
+        libicu-dev \
+        libedit-dev \
+        libmysqlclient21 \
+        make \
+        moreutils \
+        netcat-openbsd \
         openssh-client \
         openssh-server \
-        libssl3 \
-        libicu74 \
-        libc6 \
-        libgcc-s1 \
-        libstdc++6 \
-        libncurses6 \
-        libreadline8 \
-        libsqlite3-0 \
-        libffi8 \
-        libbz2-1.0 \
-        liblzma5 \
+        pkg-config \
+        protobuf-compiler \
+        python3-pip \
+        ripgrep \
+        rsync \
+        software-properties-common \
+        sqlite3 \
+        swig3.0 \
+        tk-dev \
+        tzdata \
+        unixodbc-dev \
+        unzip \
+        uuid-dev \
+        xz-utils \
+        zip \
         zlib1g \
-        libxml2 \
-        libxslt1.1 \
-        libpq5 \
-        libmysqlclient21 && \
+        zlib1g-dev \
+        bash \
+        bash-completion \
+        zsh \
+        fish \
+        tmux \
+        screen \
+        htop \
+        ncdu \
+        tree \
+        vim \
+        nano \
+        emacs-nox \
+        pipx \
+        openjdk-21-jdk \
+        ruby-full \
+        rbenv \
+        clang \
+        clang-format \
+        clang-tidy \
+        cmake \
+        ccache \
+        ninja-build \
+        valgrind \
+        gdb \
+        php \
+        php-cli \
+        php-curl \
+        php-mbstring \
+        php-xml \
+        php-zip \
+        composer \
+        docker.io \
+        docker-compose \
+        iptables \
+        postgresql-client \
+        mysql-client \
+        redis-tools \
+        apt-transport-https && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy language runtimes and tools
