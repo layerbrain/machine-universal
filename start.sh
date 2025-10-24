@@ -15,11 +15,6 @@ fi
 ROOT_SSH_DIR="${ROOT_HOME}/.ssh"
 
 # Configure SSH if credentials provided
-if [ -n "$ROOT_PASSWORD" ]; then
-    echo "root:$ROOT_PASSWORD" | chpasswd
-    echo "Root password configured."
-fi
-
 if [ -n "$SSH_PUBLIC_KEY" ]; then
     mkdir -p "$ROOT_SSH_DIR"
     chmod 700 "$ROOT_SSH_DIR"
@@ -29,7 +24,7 @@ if [ -n "$SSH_PUBLIC_KEY" ]; then
 fi
 
 # Start SSH server
-if [ -n "$ROOT_PASSWORD" ] || [ -n "$SSH_PUBLIC_KEY" ]; then
+if [ -n "$SSH_PUBLIC_KEY" ]; then
     # Create SSH wrapper script
     cat > /usr/local/bin/ssh-wrapper.sh << 'WRAPPER_EOF'
 #!/bin/bash
