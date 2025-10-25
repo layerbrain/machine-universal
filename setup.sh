@@ -63,3 +63,47 @@ echo "Ruby: $(ruby --version 2>&1)"
 echo "PHP: $(php --version 2>&1 | head -n 1)"
 echo "Dotnet: $(dotnet --version 2>&1)"
 echo "=================================="
+
+# Start Docker daemon if not already running
+echo ""
+echo "=== Starting Docker ==="
+if docker info >/dev/null 2>&1; then
+    echo "Docker is already running."
+else
+    echo "Starting Docker daemon..."
+
+    # Clean up stale state files
+    rm -f /var/run/docker.pid /var/run/docker.sock
+
+    # Create necessary directories
+    mkdir -p /var/lib/docker /var/log
+
+    # Start Docker daemon with Sysbox-compatible settings
+    dockerd \
+        --data-root=/var/lib/docker \
+        --storage-driver=overlay2 \
+        --ip-forward=true \
+        --iptables=true \
+        > /var/log/dockerd.log 2>&1 &
+
+    # Wait for Docker to be ready
+    echo -n "Waiting for Docker to be ready"
+    DOCKER_READY=0
+    for i in {1..30}; do
+        if docker info >/dev/null 2>&1; then
+            DOCKER_READY=1
+            echo ""
+            echo "Docker started successfully."
+            break
+        fi
+        echo -n "."
+        sleep 1
+    done
+
+    if [ $DOCKER_READY -eq 0 ]; then
+        echo ""
+        echo "Warning: Docker failed to start within 30 seconds."
+        echo "Check /var/log/dockerd.log for details."
+    fi
+fi
+echo "=================================="
