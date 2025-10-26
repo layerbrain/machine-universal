@@ -72,19 +72,17 @@ if docker info >/dev/null 2>&1; then
 else
     echo "Starting Docker daemon..."
 
+    # Apply sysctl settings for nested containers
+    sysctl -p /etc/sysctl.conf >/dev/null 2>&1 || true
+
     # Clean up stale state files
     rm -f /var/run/docker.pid /var/run/docker.sock
 
     # Create necessary directories
     mkdir -p /var/lib/docker /var/log
 
-    # Start Docker daemon with Sysbox-compatible settings
-    dockerd \
-        --data-root=/var/lib/docker \
-        --storage-driver=overlay2 \
-        --ip-forward=true \
-        --iptables=true \
-        > /var/log/dockerd.log 2>&1 &
+    # Start Docker daemon (config from /etc/docker/daemon.json)
+    dockerd > /var/log/dockerd.log 2>&1 &
 
     # Wait for Docker to be ready
     echo -n "Waiting for Docker to be ready"

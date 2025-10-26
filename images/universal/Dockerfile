@@ -543,6 +543,14 @@ COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
 COPY --from=builder /opt/start.sh /opt/start.sh
 COPY --from=builder /opt/layerbrain/init-env.sh /opt/layerbrain/init-env.sh
 
+# Configure Docker for nested containers (Sysbox MTU fix)
+RUN mkdir -p /etc/docker && \
+    echo '{"mtu": 1450, "ipv6": false}' > /etc/docker/daemon.json
+
+# Enable IP forwarding for nested containers
+RUN echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf && \
+    echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+
 # Configure SSH and environment
 RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
     chmod 700 /root/.ssh && \
