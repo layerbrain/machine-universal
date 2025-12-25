@@ -492,6 +492,8 @@ RUN apt-get update && \
         tmux \
         screen \
         htop \
+        lsof \
+        procps \
         ncdu \
         tree \
         vim \
