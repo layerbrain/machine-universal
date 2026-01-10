@@ -209,13 +209,17 @@ RUN rm -f /var/lib/apt/lists/lock && \
 ###############################################################################
 ARG RUST_VERSION=stable
 
+ARG TARGETARCH
 RUN --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/root/.cargo/git \
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
         sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} && \
     . "$HOME/.cargo/env" && \
     rustup component add rustfmt clippy && \
-    cargo install sccache sd eza dust broot
+    cargo install sccache sd eza broot && \
+    DUST_ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "aarch64" || echo "x86_64") && \
+    curl -fsSL "https://github.com/bootandy/dust/releases/download/v1.1.1/dust-v1.1.1-${DUST_ARCH}-unknown-linux-gnu.tar.gz" | tar xz -C /tmp && \
+    mv /tmp/dust-v1.1.1-${DUST_ARCH}-unknown-linux-gnu/dust /root/.cargo/bin/dust
 
 ###############################################################################
 # 9) Go
