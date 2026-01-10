@@ -353,6 +353,9 @@ FROM ubuntu:24.04 AS runtime
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     HOME=/root \
+    NVM_DIR=/root/.nvm \
+    PYENV_ROOT=/root/.pyenv \
+    BUN_INSTALL=/root/.bun \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:$PATH
 
 # Install runtime dependencies
