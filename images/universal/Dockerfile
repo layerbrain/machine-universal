@@ -176,7 +176,8 @@ RUN curl -LO "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}
     rm gradle-${GRADLE_VERSION}-bin.zip && \
     mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/"
 
-RUN curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz && \
+RUN curl -fsSL --retry 3 --retry-delay 5 "https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz || \
+    curl -fsSL --retry 3 --retry-delay 5 "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz && \
     tar -xzf maven.tar.gz && rm maven.tar.gz && mv apache-maven-${MAVEN_VERSION} "${MAVEN_HOME}/"
 
 ###############################################################################
