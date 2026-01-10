@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:$PATH
 
 ###############################################################################
-# 1) APT + all base packages (no cache mount to avoid lock issues)
+# 1) Base packages
 ###############################################################################
 RUN rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock* /var/cache/apt/archives/lock && \
     apt-get update && \
@@ -18,7 +18,6 @@ RUN rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock* /var/cache/apt/archives/lo
         binutils \
         sudo \
         build-essential \
-        bzr \
         curl \
         wget \
         default-libmysqlclient-dev \
@@ -61,20 +60,15 @@ RUN rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock* /var/cache/apt/archives/lo
         libicu-dev \
         libedit-dev \
         make \
-        moreutils \
         netcat-openbsd \
         openssh-client \
         pkg-config \
-        protobuf-compiler \
         python3-pip \
         ripgrep \
         rsync \
         software-properties-common \
         sqlite3 \
-        swig3.0 \
-        tk-dev \
         tzdata \
-        unixodbc-dev \
         unzip \
         uuid-dev \
         xz-utils \
@@ -84,26 +78,22 @@ RUN rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock* /var/cache/apt/archives/lo
     rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
-# 2) Bash and shell tools
+# 2) Shell tools and editors
 ###############################################################################
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         bash \
         bash-completion \
-        zsh \
-        fish \
         tmux \
-        screen \
         htop \
         ncdu \
         tree \
         vim \
-        nano \
-        emacs-nox && \
+        nano && \
     rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
-# 3) Python (pyenv + versions) + pipx + pip cache
+# 3) Python (pyenv + 3.12, 3.13)
 ###############################################################################
 ARG PYENV_VERSION=v2.5.5
 ARG PYTHON_VERSION=3.13
@@ -112,16 +102,9 @@ ENV PATH=$PYENV_ROOT/bin:$PATH
 
 RUN git -c advice.detachedHead=0 clone --branch ${PYENV_VERSION} --depth 1 https://github.com/pyenv/pyenv.git "${PYENV_ROOT}" && \
     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /etc/profile && \
-    echo 'export PATH="$$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"' >> /etc/profile && \
+    echo 'export PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"' >> /etc/profile && \
     echo 'eval "$(pyenv init - bash)"' >> /etc/profile && \
     cd ${PYENV_ROOT} && src/configure && make -C src
-
-# Install Python versions separately for better caching
-RUN --mount=type=cache,target=/root/.pyenv/cache \
-    pyenv install 3.10
-
-RUN --mount=type=cache,target=/root/.pyenv/cache \
-    pyenv install 3.11
 
 RUN --mount=type=cache,target=/root/.pyenv/cache \
     pyenv install 3.12
@@ -138,13 +121,13 @@ RUN rm -f /var/lib/apt/lists/lock && \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     for pyv in $(ls ${PYENV_ROOT}/versions/); do \
-        ${PYENV_ROOT}/versions/$pyv/bin/pip install --upgrade pip ruff black mypy pyright isort; \
+        ${PYENV_ROOT}/versions/$pyv/bin/pip install --upgrade pip ruff mypy; \
     done
 
 ENV UV_NO_PROGRESS=1
 
 ###############################################################################
-# 4) Node + Bun
+# 4) Node.js (nvm + 20, 22) + Bun
 ###############################################################################
 ARG NVM_VERSION=v0.40.2
 ARG NODE_VERSION=22
@@ -159,7 +142,6 @@ RUN git -c advice.detachedHead=0 clone --branch ${NVM_VERSION} --depth 1 https:/
     echo 'source $NVM_DIR/nvm.sh' >> /etc/profile && \
     echo "prettier\neslint\ntypescript" > $NVM_DIR/default-packages && \
     . $NVM_DIR/nvm.sh && \
-    nvm install 18 && \
     nvm install 20 && \
     nvm install 22 && \
     nvm alias default $NODE_VERSION && \
@@ -220,10 +202,10 @@ ENV PATH=/root/.local/share/gem/ruby/3.3.0/bin:$PATH
 
 RUN rm -f /var/lib/apt/lists/lock && \
     apt-get update && apt-get install -y --no-install-recommends ruby-full rbenv && rm -rf /var/lib/apt/lists/* && \
-    gem install bundler rails
+    gem install bundler
 
 ###############################################################################
-# 8) Rust
+# 8) Rust + Rust-based CLI tools
 ###############################################################################
 ARG RUST_VERSION=stable
 
@@ -233,10 +215,10 @@ RUN --mount=type=cache,target=/root/.cargo/registry \
         sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} && \
     . "$HOME/.cargo/env" && \
     rustup component add rustfmt clippy && \
-    cargo install sccache
+    cargo install sccache sd eza dust broot
 
 ###############################################################################
-# 9) Go per-arch
+# 9) Go
 ###############################################################################
 ARG GO_VERSION=1.23.8
 ARG TARGETPLATFORM
@@ -266,47 +248,27 @@ RUN --mount=type=cache,target=/var/cache/apt \
         cmake \
         ccache \
         ninja-build \
-        valgrind \
         gdb && \
     rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
-# 11) .NET
-###############################################################################
-ARG DOTNET_VERSION=8.0
-
-RUN curl -L https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh && \
-    chmod +x /tmp/dotnet-install.sh && \
-    /tmp/dotnet-install.sh --channel ${DOTNET_VERSION} && \
-    rm /tmp/dotnet-install.sh && \
-    echo 'export DOTNET_ROOT=$HOME/.dotnet' >> /etc/profile && \
-    echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /etc/profile
-
-###############################################################################
-# 12) PHP
+# 11) Additional tools (fd, bat, ffmpeg, tidy)
 ###############################################################################
 RUN --mount=type=cache,target=/var/cache/apt \
     rm -f /var/lib/apt/lists/lock && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        php \
-        php-cli \
-        php-curl \
-        php-mbstring \
-        php-xml \
-        php-zip \
-        composer && \
-    rm -rf /var/lib/apt/lists/*
+        fd-find \
+        bat \
+        ffmpeg \
+        tidy && \
+    rm -rf /var/lib/apt/lists/* && \
+    # Create symlinks for fd and bat (Ubuntu uses different names)
+    ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
+    ln -sf /usr/bin/batcat /usr/local/bin/bat
 
 ###############################################################################
-# 13) Bazel
-###############################################################################
-RUN curl -L --fail https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64 -o /usr/local/bin/bazelisk && \
-    chmod +x /usr/local/bin/bazelisk && \
-    ln -s /usr/local/bin/bazelisk /usr/local/bin/bazel
-
-###############################################################################
-# 14) Docker CLI
+# 12) Docker CLI
 ###############################################################################
 RUN --mount=type=cache,target=/var/cache/apt \
     rm -f /var/lib/apt/lists/lock && \
@@ -315,49 +277,32 @@ RUN --mount=type=cache,target=/var/cache/apt \
     rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
-# 15) Cloud Tools
+# 13) AWS CLI
 ###############################################################################
-# AWS CLI
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" && \
-    unzip /tmp/awscliv2.zip -d /tmp/&& \
+ARG TARGETPLATFORM
+RUN set -eux; \
+    case "${TARGETPLATFORM}" in \
+      "linux/amd64") AWSARCH=x86_64;; \
+      "linux/arm64") AWSARCH=aarch64;; \
+      *) echo "Unsupported: ${TARGETPLATFORM}" >&2; exit 1;; \
+    esac && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-${AWSARCH}.zip" -o "/tmp/awscliv2.zip" && \
+    unzip /tmp/awscliv2.zip -d /tmp/ && \
     /tmp/aws/install && \
     rm -rf /tmp/aws*
 
-# Google Cloud SDK
-RUN rm -f /var/lib/apt/lists/lock && \
-    apt-get update && \
-    apt-get install -y apt-transport-https ca-certificates gnupg && \
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
-    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg && \
-    apt-get update && \
-    apt-get install -y google-cloud-cli && \
-    rm -rf /var/lib/apt/lists/*
-
-# Azure CLI
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
-
 ###############################################################################
-# 16) Database Tools
+# 14) Database clients
 ###############################################################################
 RUN rm -f /var/lib/apt/lists/lock && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         postgresql-client \
-        mysql-client \
-        redis-tools && \
-    rm -rf /var/lib/apt/lists/*
-
-# MongoDB Shell
-RUN curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
-        gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg && \
-    echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list && \
-    rm -f /var/lib/apt/lists/lock && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends mongodb-mongosh && \
+        mysql-client && \
     rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
-# 17) Python Async Libraries
+# 15) Python async libraries
 ###############################################################################
 RUN --mount=type=cache,target=/root/.cache/pip \
     for pyv in $(ls ${PYENV_ROOT}/versions/); do \
@@ -372,7 +317,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     done
 
 ###############################################################################
-# 18) NeutronAPI (installed last for cache reuse; no pinning)
+# 16) Biome (JS/TS linter via npm)
+###############################################################################
+RUN . $NVM_DIR/nvm.sh && npm install -g @biomejs/biome
+
+###############################################################################
+# 17) NeutronAPI (installed last for cache reuse)
 ###############################################################################
 ARG NEUTRONAPI_REFRESH=0
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -392,7 +342,7 @@ COPY ../../init-env.sh /opt/layerbrain/init-env.sh
 RUN chmod +x /opt/layerbrain/init-env.sh
 
 ###############################################################################
-#                                RUNTIME                                     #
+#                                RUNTIME                                       #
 ###############################################################################
 FROM ubuntu:24.04 AS runtime
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -400,13 +350,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HOME=/root \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:$PATH
 
-# Install all development tools and runtime dependencies
+# Install runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         binutils \
         sudo \
         build-essential \
-        bzr \
         ca-certificates \
         curl \
         wget \
@@ -464,21 +413,16 @@ RUN apt-get update && \
         libedit-dev \
         libmysqlclient21 \
         make \
-        moreutils \
         netcat-openbsd \
         openssh-client \
         openssh-server \
         pkg-config \
-        protobuf-compiler \
         python3-pip \
         ripgrep \
         rsync \
         software-properties-common \
         sqlite3 \
-        swig3.0 \
-        tk-dev \
         tzdata \
-        unixodbc-dev \
         unzip \
         uuid-dev \
         xz-utils \
@@ -487,10 +431,7 @@ RUN apt-get update && \
         zlib1g-dev \
         bash \
         bash-completion \
-        zsh \
-        fish \
         tmux \
-        screen \
         htop \
         lsof \
         procps \
@@ -498,7 +439,6 @@ RUN apt-get update && \
         tree \
         vim \
         nano \
-        emacs-nox \
         pipx \
         openjdk-21-jdk \
         ruby-full \
@@ -509,23 +449,21 @@ RUN apt-get update && \
         cmake \
         ccache \
         ninja-build \
-        valgrind \
         gdb \
-        php \
-        php-cli \
-        php-curl \
-        php-mbstring \
-        php-xml \
-        php-zip \
-        composer \
         docker.io \
         docker-compose \
         iptables \
         postgresql-client \
         mysql-client \
-        redis-tools \
-        apt-transport-https && \
-    rm -rf /var/lib/apt/lists/*
+        apt-transport-https \
+        fd-find \
+        bat \
+        ffmpeg \
+        tidy && \
+    rm -rf /var/lib/apt/lists/* && \
+    # Create symlinks for fd and bat
+    ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
+    ln -sf /usr/bin/batcat /usr/local/bin/bat
 
 # Copy language runtimes and tools
 COPY --from=builder /usr/local/go /usr/local/go
@@ -536,9 +474,9 @@ COPY --from=builder /root/.bun /root/.bun
 COPY --from=builder /root/.local /root/.local
 COPY --from=builder /opt/gradle /opt/gradle
 COPY --from=builder /opt/maven /opt/maven
-COPY --from=builder /root/.dotnet /root/.dotnet
-COPY --from=builder /usr/local/bin/bazel* /usr/local/bin/
 COPY --from=builder /etc/profile /etc/profile
+COPY --from=builder /usr/local/aws-cli /usr/local/aws-cli
+COPY --from=builder /usr/local/bin/aws* /usr/local/bin/
 
 # Copy scripts
 COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
@@ -559,7 +497,7 @@ RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
     echo 'source /opt/layerbrain/init-env.sh' >> /root/.bashrc && \
     cp /opt/layerbrain/init-env.sh /etc/profile.d/layerbrain.sh && \
     echo 'PermitUserEnvironment yes' >> /etc/ssh/sshd_config && \
-    echo 'PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.dotnet:/root/.dotnet/tools:/root/.local/share/swiftly/toolchains/latest/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' > /root/.ssh/environment && \
+    echo 'PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' > /root/.ssh/environment && \
     chmod 600 /root/.ssh/environment
 
 EXPOSE 22
