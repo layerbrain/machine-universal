@@ -4,6 +4,18 @@ echo "=================================="
 echo "Setting up Layerbrain environment..."
 echo "=================================="
 
+# Create standard user directories (macOS-like) in ~/brain
+# Uses ~/brain for OS-agnostic paths (works on Linux and macOS)
+BRAIN_HOME=~/brain
+mkdir -p "$BRAIN_HOME/Desktop"
+mkdir -p "$BRAIN_HOME/Documents"
+mkdir -p "$BRAIN_HOME/Downloads"
+mkdir -p "$BRAIN_HOME/Music"
+mkdir -p "$BRAIN_HOME/Pictures"
+mkdir -p "$BRAIN_HOME/Movies"
+mkdir -p "$BRAIN_HOME/Uploads"
+mkdir -p "$BRAIN_HOME/applications"
+
 # Configure Python version if specified
 if [ ! -z "$LAYERBRAIN_ENV_PYTHON_VERSION" ]; then
     echo "Setting Python version to $LAYERBRAIN_ENV_PYTHON_VERSION"
