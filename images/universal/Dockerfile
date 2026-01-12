@@ -5,7 +5,7 @@
 FROM ubuntu:24.04 AS builder
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
-    HOME=/home \
+    HOME=/root \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:$PATH
 
 ###############################################################################
