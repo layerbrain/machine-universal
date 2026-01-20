@@ -345,6 +345,8 @@ COPY ../../start.sh /opt/start.sh
 RUN chmod +x /opt/start.sh
 COPY ../../init-env.sh /opt/layerbrain/init-env.sh
 RUN chmod +x /opt/layerbrain/init-env.sh
+COPY ../../index-watcher.sh /opt/layerbrain/index-watcher.sh
+RUN chmod +x /opt/layerbrain/index-watcher.sh
 
 ###############################################################################
 #                                RUNTIME                                       #
@@ -473,13 +475,6 @@ RUN apt-get update && \
     ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
     ln -sf /usr/bin/batcat /usr/local/bin/bat
 
-# Bake application template into the image
-ARG APPLICATION_TEMPLATE_REPO=https://github.com/layerbrain/application
-ARG APPLICATION_TEMPLATE_REF=main
-RUN mkdir -p /root/.brainos/templates && \
-    git clone --depth 1 --branch ${APPLICATION_TEMPLATE_REF} ${APPLICATION_TEMPLATE_REPO} /root/.brainos/templates/app && \
-    rm -rf /root/.brainos/templates/app/.git
-
 # Copy language runtimes and tools
 COPY --from=builder /usr/local/go /usr/local/go
 COPY --from=builder /root/.cargo /root/.cargo
@@ -497,6 +492,7 @@ COPY --from=builder /usr/local/bin/aws* /usr/local/bin/
 COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
 COPY --from=builder /opt/start.sh /opt/start.sh
 COPY --from=builder /opt/layerbrain/init-env.sh /opt/layerbrain/init-env.sh
+COPY --from=builder /opt/layerbrain/index-watcher.sh /opt/layerbrain/index-watcher.sh
 
 # Configure Docker for nested containers
 RUN mkdir -p /etc/docker && \

@@ -16,6 +16,16 @@ mkdir -p "$BRAIN_HOME/Movies"
 mkdir -p "$BRAIN_HOME/Uploads"
 mkdir -p "$BRAIN_HOME/applications"
 
+# Start index watcher daemon (indexes ~/brain files to ~/.index.db)
+echo ""
+echo "=== Starting Index Watcher ==="
+if [ -f /opt/layerbrain/index-watcher.sh ]; then
+    nohup /opt/layerbrain/index-watcher.sh > /var/log/index-watcher.log 2>&1 &
+    echo "Index watcher started (PID: $!)"
+else
+    echo "Warning: index-watcher.sh not found"
+fi
+
 # Configure Python version if specified
 if [ ! -z "$LAYERBRAIN_ENV_PYTHON_VERSION" ]; then
     echo "Setting Python version to $LAYERBRAIN_ENV_PYTHON_VERSION"
