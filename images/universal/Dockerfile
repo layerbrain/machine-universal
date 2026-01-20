@@ -473,6 +473,13 @@ RUN apt-get update && \
     ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
     ln -sf /usr/bin/batcat /usr/local/bin/bat
 
+# Bake application template into the image
+ARG APPLICATION_TEMPLATE_REPO=https://github.com/layerbrain/application
+ARG APPLICATION_TEMPLATE_REF=main
+RUN mkdir -p /root/.brainos/templates && \
+    git clone --depth 1 --branch ${APPLICATION_TEMPLATE_REF} ${APPLICATION_TEMPLATE_REPO} /root/.brainos/templates/app && \
+    rm -rf /root/.brainos/templates/app/.git
+
 # Copy language runtimes and tools
 COPY --from=builder /usr/local/go /usr/local/go
 COPY --from=builder /root/.cargo /root/.cargo
@@ -507,6 +514,16 @@ RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
     echo 'PermitUserEnvironment yes' >> /etc/ssh/sshd_config && \
     echo 'PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' > /root/.ssh/environment && \
     chmod 600 /root/.ssh/environment
+
+# Create default ~/brain directories (auto-created, no runtime checks needed)
+RUN mkdir -p /root/brain/desktop \
+             /root/brain/documents \
+             /root/brain/downloads \
+             /root/brain/music \
+             /root/brain/pictures \
+             /root/brain/movies \
+             /root/brain/uploads \
+             /root/brain/applications
 
 EXPOSE 22
 
