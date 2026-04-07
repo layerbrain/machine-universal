@@ -467,7 +467,7 @@ RUN apt-get update && \
         xclip xsel scrot \
         poppler-utils ghostscript \
         tesseract-ocr tesseract-ocr-eng \
-        libgl1-mesa-dri libgl1-mesa-glx libegl1-mesa \
+        libgl1-mesa-dri libgl1 libegl1 \
         libatspi2.0-0t64 at-spi2-core \
         socat openssl \
         p7zip-full lz4 && \
