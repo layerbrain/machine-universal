@@ -235,7 +235,7 @@ RUN --mount=type=cache,target=/root/go/pkg \
       "linux/arm64") GOARCH=arm64;; \
       *) echo "Unsupported: ${TARGETPLATFORM}" >&2; exit 1;; \
     esac && \
-    curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${GOARCH}.tar.gz" -o /tmp/go.tar.gz && \
+    curl -fsSL --retry 5 --retry-delay 5 --max-time 300 "https://go.dev/dl/go${GO_VERSION}.linux-${GOARCH}.tar.gz" -o /tmp/go.tar.gz && \
     tar -C /usr/local -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz && \
     /usr/local/go/bin/go install golang.org/x/tools/gopls@latest && \
     /usr/local/go/bin/go install github.com/go-delve/delve/cmd/dlv@latest
@@ -363,6 +363,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Install runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        dbus \
+        dbus-x11 \
         binutils \
         sudo \
         build-essential \
@@ -371,19 +373,38 @@ RUN apt-get update && \
         wget \
         default-libmysqlclient-dev \
         dnsutils \
+        ffmpeg \
+        imagemagick \
         gettext \
         git \
         git-lfs \
+        gir1.2-gstreamer-1.0 \
+        gir1.2-gst-plugins-bad-1.0 \
+        gir1.2-gst-plugins-base-1.0 \
         gnupg2 \
+        gstreamer1.0-libav \
+        gstreamer1.0-nice \
+        gstreamer1.0-plugins-bad \
+        gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good \
+        gstreamer1.0-plugins-ugly \
+        gstreamer1.0-tools \
+        gstreamer1.0-vaapi \
         inotify-tools \
         iputils-ping \
         jq \
         libbz2-dev \
         libbz2-1.0 \
+        libasound2 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libcairo2 \
         libc6 \
         libc6-dev \
+        libcups2 \
         libcurl4-openssl-dev \
         libdb-dev \
+        libdrm2 \
         libedit2 \
         libffi-dev \
         libffi8 \
@@ -393,14 +414,19 @@ RUN apt-get update && \
         libgdbm-compat-dev \
         libgdbm-dev \
         libgdiplus \
+        libgbm1 \
+        libglib2.0-0 \
         libgssapi-krb5-2 \
+        libgtk-3-0 \
         libicu74 \
         liblzma-dev \
         liblzma5 \
         libncurses-dev \
         libncurses6 \
         libncursesw5-dev \
+        libnss3 \
         libnss3-dev \
+        libpango-1.0-0 \
         libpq-dev \
         libpq5 \
         libpsl-dev \
@@ -417,17 +443,37 @@ RUN apt-get update && \
         libuuid1 \
         libxml2 \
         libxml2-dev \
+        libx11-6 \
         libxslt1.1 \
+        libx11-xcb1 \
+        libxcomposite1 \
+        libxcursor1 \
+        libxdamage1 \
+        libxext6 \
+        libxfixes3 \
+        libxi6 \
+        libxinerama1 \
+        libxkbcommon0 \
+        libxrandr2 \
+        libxrender1 \
+        libxshmfence1 \
+        libxss1 \
+        libxtst6 \
         libz3-dev \
         libicu-dev \
         libedit-dev \
         libmysqlclient21 \
         make \
         netcat-openbsd \
+        network-manager \
+        openbox \
         openssh-client \
         openssh-server \
         pkg-config \
+        pulseaudio-utils \
         python3-pip \
+        python3-gi \
+        python3-gst-1.0 \
         ripgrep \
         rsync \
         software-properties-common \
@@ -435,7 +481,15 @@ RUN apt-get update && \
         tzdata \
         unzip \
         uuid-dev \
+        vainfo \
+        v4l-utils \
         xz-utils \
+        x11-utils \
+        x11-xserver-utils \
+        xauth \
+        xdg-utils \
+        xdotool \
+        xvfb \
         zip \
         zlib1g \
         zlib1g-dev \
@@ -462,13 +516,15 @@ RUN apt-get update && \
         gdb \
         docker.io \
         docker-compose \
+        conntrack \
+        iproute2 \
         iptables \
+        ipset \
         postgresql-client \
         mysql-client \
         apt-transport-https \
         fd-find \
         bat \
-        ffmpeg \
         tidy && \
     rm -rf /var/lib/apt/lists/* && \
     # Create symlinks for fd and bat

@@ -1,6 +1,6 @@
 # Universal Machine
 
-A comprehensive, zero-configuration development environment container with all major programming languages and modern CLI tools.
+A comprehensive, zero-configuration development environment container with all major programming languages, modern CLI tools, and the Linux desktop/media runtime that OS0 uses for screen streaming, capture, and device control.
 
 ## Features
 
@@ -9,6 +9,8 @@ A comprehensive, zero-configuration development environment container with all m
 - **Pre-configured tools**: Package managers, linters, formatters, and build tools
 - **Cloud-ready**: AWS CLI pre-installed
 - **Database clients**: PostgreSQL and MySQL clients included
+- **Kernel networking tools**: conntrack, iptables, ipset, iproute2
+- **OS0 Linux runtime**: GStreamer WebRTC, X11 capture, ffmpeg, PulseAudio, Video4Linux, desktop control tooling
 - **Zero setup**: Works out of the box with sensible defaults
 - **Async API ready**: Includes Uvicorn and NeutronAPI for high-performance Python APIs
 
@@ -115,6 +117,23 @@ docker run --rm -it \
 - **ffmpeg**: Media processing
 - **tidy**: HTML validator
 - **biome**: Fast JS/TS linter
+- **conntrack, iptables, ipset, iproute2**: Linux kernel networking and firewall tooling
+
+### OS0 Linux Runtime Support
+- **Screen streaming**: `ximagesrc`, `webrtcbin`, `gst-inspect-1.0`, and the required GStreamer plugins for the current OS0 WebRTC sender path
+- **Display capture fallback**: `ffmpeg`, `import`, and `magick` for X11 capture flows
+- **Camera and microphone capture**: `ffmpeg`, `video4linux2`, `v4l2-ctl`, `pactl`, and `paplay`
+- **Desktop control and inspection**: `xrandr`, `xdotool`, `xauth`, `xvfb`, `openbox`, and `xdg-utils`
+- **Linux network/device helpers**: `nmcli`, `conntrack`, `iptables`, `ipset`, and `iproute2`
+
+This image intentionally supports the current OS0 Linux runtime contract:
+- X11 screen capture via `ximagesrc`
+- GStreamer WebRTC send pipelines via `webrtcbin`
+- Linux camera capture via `ffmpeg` + `video4linux2`
+- Linux microphone capture via `ffmpeg` + PulseAudio
+- Linux desktop/device control via `xrandr`, `xdotool`, `v4l2-ctl`, `pactl`, `paplay`, `nmcli`, `import`, and `magick`
+
+Hardware acceleration remains host/runtime dependent. The image includes the userspace packages required for VAAPI inspection and GStreamer acceleration paths, but actual GPU encode availability still depends on the host device/runtime configuration.
 
 ### Development Tools
 - **Version Control**: git, git-lfs
