@@ -453,12 +453,20 @@ RUN apt-get update && \
     locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
-# Google Chrome — standalone browser for web automation.
-# Ubuntu 24.04 Chromium is snap-only which doesn't work in Docker.
-RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends google-chrome-stable && \
+# Browser — Google Chrome on amd64, Chromium (via PPA) on arm64.
+# Ubuntu 24.04 snap Chromium doesn't work in Docker containers.
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "amd64" ]; then \
+        curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+        apt-get update && \
+        apt-get install -y --no-install-recommends google-chrome-stable; \
+    else \
+        add-apt-repository -y ppa:xtradeb/apps && \
+        apt-get update && \
+        apt-get install -y --no-install-recommends chromium && \
+        ln -sf /usr/bin/chromium /usr/bin/google-chrome; \
+    fi && \
     rm -rf /var/lib/apt/lists/*
 
 # Agent tooling — clipboard, screenshots, PDF/OCR, OpenGL, accessibility
