@@ -361,175 +361,127 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:$PATH
 
 # Install runtime dependencies
+# Split into groups so a failure points to the right category.
+# Ubuntu 24.04 (Noble) renamed several libraries with t64 suffix for 64-bit time_t.
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        dbus \
-        dbus-x11 \
-        binutils \
-        sudo \
-        build-essential \
-        ca-certificates \
-        curl \
-        wget \
-        default-libmysqlclient-dev \
-        dnsutils \
-        ffmpeg \
-        imagemagick \
-        gettext \
-        git \
-        git-lfs \
-        gir1.2-gstreamer-1.0 \
-        gir1.2-gst-plugins-bad-1.0 \
+        dbus dbus-x11 sudo ca-certificates curl wget gnupg2 \
+        software-properties-common apt-transport-https && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        binutils build-essential make pkg-config \
+        libc6 libc6-dev libgcc-s1 libstdc++6 \
+        libgcc-14-dev libstdc++-14-dev \
+        libffi-dev libffi8 libssl-dev libssl3 \
+        libbz2-dev libbz2-1.0 liblzma-dev liblzma5 \
+        libreadline-dev libreadline8t64 \
+        libsqlite3-dev libsqlite3-0 \
+        libncurses-dev libncurses6 \
+        libdb-dev libgdbm-compat-dev libgdbm-dev \
+        libcurl4-openssl-dev libpsl-dev libpq-dev libpq5 \
+        libxml2 libxml2-dev libicu-dev libedit-dev libedit2 \
+        libz3-dev uuid-dev libuuid1 zlib1g zlib1g-dev \
+        libpython3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libasound2t64 libatk-bridge2.0-0t64 libatk1.0-0t64 \
+        libcairo2 libcups2t64 libdrm2 libgbm1 \
+        libglib2.0-0t64 libgssapi-krb5-2 libgtk-3-0t64 \
+        libicu74 libnss3 libnss3-dev libpango-1.0-0 \
+        libunwind8 libx11-6 libx11-xcb1 libxcomposite1 \
+        libxcursor1 libxdamage1 libxext6 libxfixes3 \
+        libxi6 libxinerama1 libxkbcommon0 libxrandr2 \
+        libxrender1 libxshmfence1 libxss1 libxtst6 libxslt1.1 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gir1.2-gstreamer-1.0 gir1.2-gst-plugins-bad-1.0 \
         gir1.2-gst-plugins-base-1.0 \
-        gnupg2 \
-        gstreamer1.0-libav \
-        gstreamer1.0-nice \
-        gstreamer1.0-plugins-bad \
-        gstreamer1.0-plugins-base \
-        gstreamer1.0-plugins-good \
-        gstreamer1.0-plugins-ugly \
+        gstreamer1.0-libav gstreamer1.0-nice \
+        gstreamer1.0-plugins-bad gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly \
         gstreamer1.0-tools \
-        gstreamer1.0-vaapi \
-        inotify-tools \
-        iputils-ping \
-        jq \
-        libbz2-dev \
-        libbz2-1.0 \
-        libasound2 \
-        libatk-bridge2.0-0 \
-        libatk1.0-0 \
-        libcairo2 \
-        libc6 \
-        libc6-dev \
-        libcups2 \
-        libcurl4-openssl-dev \
-        libdb-dev \
-        libdrm2 \
-        libedit2 \
-        libffi-dev \
-        libffi8 \
-        libgcc-13-dev \
-        libgcc1 \
-        libgcc-s1 \
-        libgdbm-compat-dev \
-        libgdbm-dev \
-        libgdiplus \
-        libgbm1 \
-        libglib2.0-0 \
-        libgssapi-krb5-2 \
-        libgtk-3-0 \
-        libicu74 \
-        liblzma-dev \
-        liblzma5 \
-        libncurses-dev \
-        libncurses6 \
-        libncursesw5-dev \
-        libnss3 \
-        libnss3-dev \
-        libpango-1.0-0 \
-        libpq-dev \
-        libpq5 \
-        libpsl-dev \
-        libpython3-dev \
-        libreadline-dev \
-        libreadline8 \
-        libsqlite3-dev \
-        libsqlite3-0 \
-        libssl-dev \
-        libssl3 \
-        libstdc++-13-dev \
-        libstdc++6 \
-        libunwind8 \
-        libuuid1 \
-        libxml2 \
-        libxml2-dev \
-        libx11-6 \
-        libxslt1.1 \
-        libx11-xcb1 \
-        libxcomposite1 \
-        libxcursor1 \
-        libxdamage1 \
-        libxext6 \
-        libxfixes3 \
-        libxi6 \
-        libxinerama1 \
-        libxkbcommon0 \
-        libxrandr2 \
-        libxrender1 \
-        libxshmfence1 \
-        libxss1 \
-        libxtst6 \
-        libz3-dev \
-        libicu-dev \
-        libedit-dev \
-        libmysqlclient21 \
-        make \
-        netcat-openbsd \
-        network-manager \
-        openbox \
-        openssh-client \
-        openssh-server \
-        pkg-config \
-        pulseaudio-utils \
-        python3-pip \
-        python3-gi \
-        python3-gst-1.0 \
-        ripgrep \
-        rsync \
-        software-properties-common \
-        sqlite3 \
-        tzdata \
-        unzip \
-        uuid-dev \
-        vainfo \
-        v4l-utils \
-        xz-utils \
-        x11-utils \
-        x11-xserver-utils \
-        xauth \
-        xdg-utils \
-        xdotool \
-        xvfb \
-        zip \
-        zlib1g \
-        zlib1g-dev \
-        bash \
-        bash-completion \
-        tmux \
-        htop \
-        lsof \
-        procps \
-        ncdu \
-        tree \
-        vim \
-        nano \
-        pipx \
-        openjdk-21-jdk \
-        ruby-full \
-        rbenv \
-        clang \
-        clang-format \
-        clang-tidy \
-        cmake \
-        ccache \
-        ninja-build \
-        gdb \
-        docker.io \
-        docker-compose \
-        conntrack \
-        iproute2 \
-        iptables \
-        ipset \
-        postgresql-client \
-        mysql-client \
-        apt-transport-https \
-        fd-find \
-        bat \
-        tidy && \
+        python3 python3-gi python3-gst-1.0 \
+        ffmpeg imagemagick vainfo v4l-utils \
+        pulseaudio pulseaudio-utils && \
+    rm -rf /var/lib/apt/lists/*
+
+# VAAPI hardware encoder — only available on amd64.
+# Falls back to software x264enc on arm64.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gstreamer1.0-vaapi 2>/dev/null || true && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git git-lfs openssh-client openssh-server \
+        rsync unzip zip xz-utils gettext jq \
+        dnsutils iputils-ping netcat-openbsd inotify-tools \
+        ripgrep fd-find bat tidy \
+        bash bash-completion tmux htop lsof procps ncdu tree vim nano \
+        sqlite3 tzdata pipx python3-pip && \
     rm -rf /var/lib/apt/lists/* && \
-    # Create symlinks for fd and bat
     ln -sf /usr/bin/fdfind /usr/local/bin/fd && \
     ln -sf /usr/bin/batcat /usr/local/bin/bat
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        openjdk-21-jdk ruby-full \
+        clang clang-format clang-tidy cmake ccache ninja-build gdb && \
+    rm -rf /var/lib/apt/lists/*
+
+# Fonts — required for browser rendering, PDF generation, and screenshot readability.
+# Without these, headless Chromium renders blank rectangles.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fontconfig fonts-liberation fonts-dejavu-core fonts-noto-color-emoji \
+        fonts-noto-cjk fonts-freefont-ttf fonts-roboto && \
+    fc-cache -fv && \
+    rm -rf /var/lib/apt/lists/*
+
+# Locales — proper UTF-8 support. Without this, international text and filenames break.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends locales && \
+    rm -rf /var/lib/apt/lists/* && \
+    sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && \
+    locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+
+# Google Chrome — standalone browser for web automation.
+# Ubuntu 24.04 Chromium is snap-only which doesn't work in Docker.
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends google-chrome-stable && \
+    rm -rf /var/lib/apt/lists/*
+
+# Agent tooling — clipboard, screenshots, PDF/OCR, OpenGL, accessibility
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        xclip xsel scrot \
+        poppler-utils ghostscript \
+        tesseract-ocr tesseract-ocr-eng \
+        libgl1-mesa-dri libgl1-mesa-glx libegl1-mesa \
+        libatspi2.0-0t64 at-spi2-core \
+        socat openssl \
+        p7zip-full lz4 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        docker.io docker-compose-v2 \
+        conntrack iproute2 iptables ipset \
+        network-manager openbox \
+        xvfb x11-utils x11-xserver-utils xauth xdg-utils xdotool \
+        postgresql-client mysql-client \
+        default-libmysqlclient-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy language runtimes and tools
 COPY --from=builder /usr/local/go /usr/local/go
