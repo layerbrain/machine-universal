@@ -273,15 +273,6 @@ RUN --mount=type=cache,target=/var/cache/apt \
     ln -sf /usr/bin/batcat /usr/local/bin/bat
 
 ###############################################################################
-# 12) Docker CLI
-###############################################################################
-RUN --mount=type=cache,target=/var/cache/apt \
-    rm -f /var/lib/apt/lists/lock && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends docker.io docker-compose && \
-    rm -rf /var/lib/apt/lists/*
-
-###############################################################################
 # 13) AWS CLI
 ###############################################################################
 ARG TARGETPLATFORM
@@ -483,8 +474,7 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        docker.io docker-compose-v2 \
-        conntrack iproute2 iptables ipset \
+        conntrack iproute2 \
         network-manager openbox \
         xvfb x11-utils x11-xserver-utils xauth xdg-utils xdotool \
         postgresql-client mysql-client \
@@ -509,14 +499,6 @@ COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
 COPY --from=builder /opt/start.sh /opt/start.sh
 COPY --from=builder /opt/layerbrain/init-env.sh /opt/layerbrain/init-env.sh
 COPY --from=builder /opt/layerbrain/index-watcher.sh /opt/layerbrain/index-watcher.sh
-
-# Configure Docker for nested containers
-RUN mkdir -p /etc/docker && \
-    echo '{"mtu": 1450, "ipv6": false}' > /etc/docker/daemon.json
-
-# Enable IP forwarding for nested containers
-RUN echo "net.ipv6.conf.all.forwarding=1" >> /etc/sysctl.conf && \
-    echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
 
 # Configure SSH and environment
 RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
