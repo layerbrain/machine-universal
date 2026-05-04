@@ -14,7 +14,14 @@ RUN printf '%s\n' \
     'Acquire::https::Timeout "45";' \
     'Acquire::ForceIPv4 "true";' \
     'APT::Get::Assume-Yes "true";' \
-    > /etc/apt/apt.conf.d/99-layerbrain-retries
+    > /etc/apt/apt.conf.d/99-layerbrain-retries && \
+    for source_file in /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources; do \
+      [ -f "$source_file" ] || continue; \
+      sed -i \
+        -e 's|http://archive.ubuntu.com/ubuntu|http://azure.archive.ubuntu.com/ubuntu|g' \
+        -e 's|http://security.ubuntu.com/ubuntu|http://azure.archive.ubuntu.com/ubuntu|g' \
+        "$source_file"; \
+    done
 
 ###############################################################################
 # 1) Base packages
