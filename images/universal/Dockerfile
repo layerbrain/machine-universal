@@ -8,6 +8,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HOME=/root \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:$PATH
 
+RUN printf '%s\n' \
+    'Acquire::Retries "5";' \
+    'Acquire::http::Timeout "45";' \
+    'Acquire::https::Timeout "45";' \
+    'Acquire::ForceIPv4 "true";' \
+    'APT::Get::Assume-Yes "true";' \
+    > /etc/apt/apt.conf.d/99-layerbrain-retries
+
 ###############################################################################
 # 1) Base packages
 ###############################################################################
