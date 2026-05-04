@@ -366,6 +366,21 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BUN_INSTALL=/root/.bun \
     PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:$PATH
 
+RUN printf '%s\n' \
+    'Acquire::Retries "5";' \
+    'Acquire::http::Timeout "45";' \
+    'Acquire::https::Timeout "45";' \
+    'Acquire::ForceIPv4 "true";' \
+    'APT::Get::Assume-Yes "true";' \
+    > /etc/apt/apt.conf.d/99-layerbrain-retries && \
+    for source_file in /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources; do \
+      [ -f "$source_file" ] || continue; \
+      sed -i \
+        -e 's|http://archive.ubuntu.com/ubuntu|http://azure.archive.ubuntu.com/ubuntu|g' \
+        -e 's|http://security.ubuntu.com/ubuntu|http://azure.archive.ubuntu.com/ubuntu|g' \
+        "$source_file"; \
+    done
+
 # Install runtime dependencies
 # Split into groups so a failure points to the right category.
 # Ubuntu 24.04 (Noble) renamed several libraries with t64 suffix for 64-bit time_t.
