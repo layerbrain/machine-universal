@@ -358,13 +358,14 @@ RUN chmod +x /opt/layerbrain/index-watcher.sh
 #                                RUNTIME                                       #
 ###############################################################################
 FROM ubuntu:24.04 AS runtime
+ARG NODE_VERSION=22
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     HOME=/home \
     NVM_DIR=/root/.nvm \
     PYENV_ROOT=/root/.pyenv \
     BUN_INSTALL=/root/.bun \
-    PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:$PATH
+    PATH=/usr/local/bin:/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/current/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/current/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:$PATH
 
 RUN printf '%s\n' \
     'Acquire::Retries "5";' \
@@ -524,6 +525,46 @@ COPY --from=builder /etc/profile /etc/profile
 COPY --from=builder /usr/local/aws-cli /usr/local/aws-cli
 COPY --from=builder /usr/local/bin/aws* /usr/local/bin/
 
+RUN set -eux; \
+    link_all() { \
+        directory="$1"; \
+        [ -d "$directory" ] || return 0; \
+        for binary in "$directory"/*; do \
+            [ -x "$binary" ] || continue; \
+            ln -sf "$binary" "/usr/local/bin/$(basename "$binary")"; \
+        done; \
+    }; \
+    python_dir="$(find "$PYENV_ROOT/versions" -mindepth 1 -maxdepth 1 -type d -name "3.13*" | sort -V | tail -n 1)"; \
+    test -n "$python_dir"; \
+    ln -sfn "$python_dir" "$PYENV_ROOT/current"; \
+    node_dir="$(find "$NVM_DIR/versions/node" -mindepth 1 -maxdepth 1 -type d -name "v${NODE_VERSION}.*" | sort -V | tail -n 1)"; \
+    test -n "$node_dir"; \
+    ln -sfn "$node_dir" "$NVM_DIR/current"; \
+    link_all "$PYENV_ROOT/current/bin"; \
+    link_all "$NVM_DIR/current/bin"; \
+    link_all "$BUN_INSTALL/bin"; \
+    link_all "/root/.cargo/bin"; \
+    link_all "/root/.local/bin"; \
+    link_all "/usr/local/go/bin"; \
+    link_all "/opt/gradle/bin"; \
+    link_all "/opt/maven/bin"; \
+    link_all "/root/.local/share/swiftly/toolchains/latest/usr/bin"; \
+    python --version; \
+    pip --version; \
+    node --version; \
+    npm --version; \
+    bun --version; \
+    go version; \
+    rustc --version; \
+    cargo --version; \
+    java --version; \
+    ruby --version; \
+    swift --version | head -n 1; \
+    gradle --version >/dev/null; \
+    mvn --version >/dev/null; \
+    uv --version; \
+    poetry --version
+
 # Copy scripts
 COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
 COPY --from=builder /opt/start.sh /opt/start.sh
@@ -536,7 +577,8 @@ RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
     echo 'source /opt/layerbrain/init-env.sh' >> /root/.bashrc && \
     cp /opt/layerbrain/init-env.sh /etc/profile.d/layerbrain.sh && \
     echo 'PermitUserEnvironment yes' >> /etc/ssh/sshd_config && \
-    echo 'PATH=/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/versions/node/v22.0.0/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' > /root/.ssh/environment && \
+    echo 'PATH="/usr/local/bin:/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/current/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/current/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin"' > /etc/environment && \
+    echo 'PATH=/usr/local/bin:/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/current/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/current/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin' > /root/.ssh/environment && \
     chmod 600 /root/.ssh/environment
 
 # Create default ~/brain directories (auto-created, no runtime checks needed)

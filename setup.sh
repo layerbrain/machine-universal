@@ -4,6 +4,32 @@ echo "=================================="
 echo "Setting up Layerbrain environment..."
 echo "=================================="
 
+export PYENV_ROOT="${PYENV_ROOT:-/root/.pyenv}"
+export NVM_DIR="${NVM_DIR:-/root/.nvm}"
+export BUN_INSTALL="${BUN_INSTALL:-/root/.bun}"
+export PATH="/usr/local/bin:/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:$PYENV_ROOT/current/bin:$PYENV_ROOT/shims:$PYENV_ROOT/bin:$NVM_DIR/current/bin:$BUN_INSTALL/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:$PATH"
+
+link_all() {
+    local directory="$1"
+    [ -d "$directory" ] || return 0
+    for binary in "$directory"/*; do
+        [ -x "$binary" ] || continue
+        ln -sf "$binary" "/usr/local/bin/$(basename "$binary")"
+    done
+}
+
+refresh_core_runtime_links() {
+    link_all /root/.pyenv/current/bin
+    link_all /root/.nvm/current/bin
+    link_all /root/.bun/bin
+    link_all /root/.cargo/bin
+    link_all /root/.local/bin
+    link_all /usr/local/go/bin
+    link_all /opt/gradle/bin
+    link_all /opt/maven/bin
+    link_all /root/.local/share/swiftly/toolchains/latest/usr/bin
+}
+
 # Create standard user directories (macOS-like) in ~/brain
 # Uses ~/brain for OS-agnostic paths (works on Linux and macOS)
 BRAIN_HOME=~/brain
@@ -30,6 +56,8 @@ fi
 if [ ! -z "$LAYERBRAIN_ENV_PYTHON_VERSION" ]; then
     echo "Setting Python version to $LAYERBRAIN_ENV_PYTHON_VERSION"
     pyenv global $LAYERBRAIN_ENV_PYTHON_VERSION
+    python_dir="$(pyenv prefix "$LAYERBRAIN_ENV_PYTHON_VERSION")"
+    ln -sfn "$python_dir" "$PYENV_ROOT/current"
 fi
 
 # Configure Node version if specified
@@ -37,6 +65,8 @@ if [ ! -z "$LAYERBRAIN_ENV_NODE_VERSION" ]; then
     echo "Setting Node version to $LAYERBRAIN_ENV_NODE_VERSION"
     source $NVM_DIR/nvm.sh
     nvm use $LAYERBRAIN_ENV_NODE_VERSION
+    node_dir="$(dirname "$(dirname "$(command -v node)")")"
+    ln -sfn "$node_dir" "$NVM_DIR/current"
 fi
 
 # Configure Rust version if specified
@@ -71,6 +101,8 @@ if [ ! -z "$LAYERBRAIN_ENV_RUBY_VERSION" ]; then
     echo "Ruby version configuration: $LAYERBRAIN_ENV_RUBY_VERSION"
     # Ruby version management would go here if using rbenv/rvm
 fi
+
+refresh_core_runtime_links
 
 # Display installed versions
 echo ""

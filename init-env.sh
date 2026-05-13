@@ -7,9 +7,15 @@ export PATH="/usr/local/go/bin:$PATH"
 # Rust
 export PATH="/root/.cargo/bin:$PATH"
 
+# User-installed CLI tools
+export PATH="/root/.local/bin:$PATH"
+
 # Python (pyenv if exists)
 if [ -d "/root/.pyenv" ]; then
     export PYENV_ROOT="/root/.pyenv"
+    if [ -d "$PYENV_ROOT/current/bin" ]; then
+        export PATH="$PYENV_ROOT/current/bin:$PATH"
+    fi
     export PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init - bash)" 2>/dev/null
 fi
@@ -17,6 +23,9 @@ fi
 # Node (nvm if exists)
 if [ -d "/root/.nvm" ]; then
     export NVM_DIR="/root/.nvm"
+    if [ -d "$NVM_DIR/current/bin" ]; then
+        export PATH="$NVM_DIR/current/bin:$PATH"
+    fi
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" 2>/dev/null
 fi
 
@@ -47,6 +56,3 @@ if [ -d "/root/.dotnet" ]; then
     export DOTNET_ROOT="/root/.dotnet"
     export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
 fi
-
-# pipx
-export PATH="/root/.local/bin:$PATH"
