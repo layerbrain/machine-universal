@@ -176,7 +176,7 @@ RUN curl -fsSL https://bun.sh/install | bash && \
 ###############################################################################
 ARG JAVA_VERSION=21
 ARG GRADLE_VERSION=8.14
-ARG MAVEN_VERSION=3.9.6
+ARG MAVEN_VERSION=3.9.11
 
 ENV GRADLE_HOME=/opt/gradle
 ENV MAVEN_HOME=/opt/maven
@@ -191,8 +191,7 @@ RUN curl -LO "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}
     rm gradle-${GRADLE_VERSION}-bin.zip && \
     mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/"
 
-RUN curl -fsSL --retry 3 --retry-delay 5 "https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz || \
-    curl -fsSL --retry 3 --retry-delay 5 "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz && \
+RUN curl -fsSL --retry 3 --retry-delay 5 "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o maven.tar.gz && \
     tar -xzf maven.tar.gz && rm maven.tar.gz && mv apache-maven-${MAVEN_VERSION} "${MAVEN_HOME}/"
 
 ###############################################################################
