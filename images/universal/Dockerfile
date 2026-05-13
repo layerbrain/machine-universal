@@ -364,6 +364,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HOME=/home \
     NVM_DIR=/root/.nvm \
     PYENV_ROOT=/root/.pyenv \
+    RUSTUP_HOME=/root/.rustup \
+    CARGO_HOME=/root/.cargo \
     BUN_INSTALL=/root/.bun \
     PATH=/usr/local/bin:/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:/root/.pyenv/current/bin:/root/.pyenv/shims:/root/.pyenv/bin:/root/.nvm/current/bin:/root/.bun/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:$PATH
 
@@ -515,6 +517,7 @@ RUN apt-get update && \
 # Copy language runtimes and tools
 COPY --from=builder /usr/local/go /usr/local/go
 COPY --from=builder /root/.cargo /root/.cargo
+COPY --from=builder /root/.rustup /root/.rustup
 COPY --from=builder /root/.pyenv /root/.pyenv
 COPY --from=builder /root/.nvm /root/.nvm
 COPY --from=builder /root/.bun /root/.bun

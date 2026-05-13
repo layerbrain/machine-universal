@@ -5,6 +5,8 @@
 export PATH="/usr/local/go/bin:$PATH"
 
 # Rust
+export RUSTUP_HOME="/root/.rustup"
+export CARGO_HOME="/root/.cargo"
 export PATH="/root/.cargo/bin:$PATH"
 
 # User-installed CLI tools

@@ -7,6 +7,8 @@ echo "=================================="
 export PYENV_ROOT="${PYENV_ROOT:-/root/.pyenv}"
 export NVM_DIR="${NVM_DIR:-/root/.nvm}"
 export BUN_INSTALL="${BUN_INSTALL:-/root/.bun}"
+export RUSTUP_HOME="${RUSTUP_HOME:-/root/.rustup}"
+export CARGO_HOME="${CARGO_HOME:-/root/.cargo}"
 export PATH="/usr/local/bin:/usr/local/go/bin:/root/.cargo/bin:/root/.local/bin:$PYENV_ROOT/current/bin:$PYENV_ROOT/shims:$PYENV_ROOT/bin:$NVM_DIR/current/bin:$BUN_INSTALL/bin:/opt/gradle/bin:/opt/maven/bin:/root/.local/share/swiftly/toolchains/latest/usr/bin:$PATH"
 
 link_all() {
