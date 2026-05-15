@@ -123,7 +123,11 @@ echo "=================================="
 # Start Docker daemon if not already running
 echo ""
 echo "=== Starting Docker ==="
-if docker info >/dev/null 2>&1; then
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Warning: Docker CLI is not installed in this image."
+elif ! command -v dockerd >/dev/null 2>&1; then
+    echo "Warning: Docker daemon is not installed in this image."
+elif docker info >/dev/null 2>&1; then
     echo "Docker is already running."
 else
     echo "Starting Docker daemon..."

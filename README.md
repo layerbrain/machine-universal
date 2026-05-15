@@ -138,7 +138,7 @@ Hardware acceleration remains host/runtime dependent. The image includes the use
 ### Development Tools
 - **Version Control**: git, git-lfs
 - **Build Tools**: make, cmake, ninja
-- **Containers**: docker, docker-compose
+- **Containers**: Docker Engine, Docker Compose v2. The startup script launches `dockerd` automatically when the machine boots.
 - **Editors**: vim, nano
 - **Shell**: bash, tmux, htop, ncdu, tree
 

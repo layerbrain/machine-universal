@@ -507,6 +507,7 @@ RUN apt-get update && \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         conntrack iproute2 \
+        docker.io docker-compose-v2 \
         network-manager openbox \
         xvfb x11-utils x11-xserver-utils xauth xdg-utils xdotool \
         postgresql-client mysql-client \
@@ -575,6 +576,7 @@ COPY --from=builder /opt/layerbrain/index-watcher.sh /opt/layerbrain/index-watch
 
 # Configure SSH and environment
 RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
+    mkdir -p /var/lib/docker /var/log && \
     chmod 700 /root/.ssh && \
     echo 'source /opt/layerbrain/init-env.sh' >> /root/.bashrc && \
     cp /opt/layerbrain/init-env.sh /etc/profile.d/layerbrain.sh && \
