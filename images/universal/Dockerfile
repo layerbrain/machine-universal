@@ -446,7 +446,7 @@ RUN apt-get update && \
         git git-lfs openssh-client openssh-server \
         rsync unzip zip xz-utils gettext jq \
         dnsutils iputils-ping netcat-openbsd inotify-tools \
-        ripgrep fd-find bat tidy \
+        ripgrep fd-find bat tidy tini \
         bash bash-completion tmux htop lsof procps ncdu tree vim nano \
         sqlite3 tzdata pipx python3-pip && \
     rm -rf /var/lib/apt/lists/* && \
@@ -597,4 +597,4 @@ RUN mkdir -p /root/brain/desktop \
 
 EXPOSE 22
 
-ENTRYPOINT ["/opt/start.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/opt/start.sh"]
