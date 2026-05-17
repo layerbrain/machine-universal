@@ -2,7 +2,9 @@
 set -euo pipefail
 
 if [ "${1:-}" = "compose" ]; then
-    export COMPOSE_PARALLEL_LIMIT="${COMPOSE_PARALLEL_LIMIT:-1}"
+    parallel_limit="${COMPOSE_PARALLEL_LIMIT:-1}"
+    shift
+    exec /usr/bin/docker compose --parallel "$parallel_limit" "$@"
 fi
 
 exec /usr/bin/docker "$@"
