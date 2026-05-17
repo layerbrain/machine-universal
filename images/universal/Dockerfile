@@ -573,9 +573,11 @@ COPY --from=builder /opt/layerbrain/setup.sh /opt/layerbrain/setup.sh
 COPY --from=builder /opt/start.sh /opt/start.sh
 COPY --from=builder /opt/layerbrain/init-env.sh /opt/layerbrain/init-env.sh
 COPY --from=builder /opt/layerbrain/index-watcher.sh /opt/layerbrain/index-watcher.sh
+RUN mkdir -p /usr/local/lib/layerbrain
+COPY ../../docker-compose-serial-up.sh /usr/local/lib/layerbrain/docker-compose-serial-up.sh
 COPY ../../docker-wrapper.sh /usr/local/bin/docker
 COPY ../../docker-compose-wrapper.sh /usr/local/bin/docker-compose
-RUN chmod +x /usr/local/bin/docker /usr/local/bin/docker-compose
+RUN chmod +x /usr/local/lib/layerbrain/docker-compose-serial-up.sh /usr/local/bin/docker /usr/local/bin/docker-compose
 
 # Configure SSH and environment
 RUN mkdir -p /var/run/sshd /root/.ssh /etc/profile.d && \
