@@ -138,7 +138,7 @@ Hardware acceleration remains host/runtime dependent. The image includes the use
 ### Development Tools
 - **Version Control**: git, git-lfs
 - **Build Tools**: make, cmake, ninja
-- **Containers**: Docker Engine, Docker Compose v2. The runtime starts Docker automatically, reaps orphaned processes with `tini`, and restarts `dockerd` if it exits.
+- **Containers**: Docker Engine, Docker Compose v2. The runtime starts Docker automatically, serializes Compose starts for nested-container stability, reaps orphaned processes with `tini`, and restarts `dockerd` if it exits.
 - **Editors**: vim, nano
 - **Shell**: bash, tmux, htop, ncdu, tree
 
